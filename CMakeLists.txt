@@ -14,7 +14,7 @@ pico_sdk_init()
 add_executable(${PROJECT_NAME}
     main.cpp
     drivers/display.cpp
-    drivers/helpers.cpp
+    drivers/st7735_commands.cpp
 )
 
 # Link Pico libraries

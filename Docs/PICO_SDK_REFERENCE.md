@@ -1,4 +1,4 @@
-# Pico SDK Function Reference
+# Pico SDK Reference
 
 ## GPIO (General Purpose Input/Output)
 
@@ -22,7 +22,30 @@ gpio_pull_down(pin)               // Enable internal pull-down resistor
 
 sleep_ms(250)                     // Pause for 250 milliseconds
 sleep_us(100)                     // Pause for 100 microseconds
+time_us_32()                      // Get current time in microseconds (for seeding RNG)
 ```
+
+## USB/Serial Communication (stdio)
+
+```cpp
+#include "pico/stdlib.h"
+
+stdio_init_all()                  // Initialize USB/UART for printf/scanf (call once at start)
+printf("text %d\n", value)        // Print to USB serial (requires stdio_init_all)
+```
+
+**Usage:**
+```cpp
+int main() {
+    stdio_init_all();             // Enable USB communication
+    sleep_ms(1000);               // Wait for USB enumeration
+    printf("Hello from Pico!\n"); // Debug output
+}
+```
+
+**CMakeLists.txt requirement:** `pico_enable_stdio_usb(${PROJECT_NAME} 1)`
+**View output:** `screen /dev/cu.usbmodem* 115200` (Exit: Ctrl+A then K)
+**Note:** Enables `picotool -f` remote flashing
 
 ## Constants
 
@@ -39,7 +62,7 @@ GPIO_IN                           // Input direction constant
 #define PIN_SCK     2             // SPI Clock
 #define PIN_MOSI    3             // SPI Data Out
 #define PIN_MISO    19            // SPI Data In (SD card only, not needed for display)
-#define PIN_BL      18            // Backlight (LITE)
+#define PIN_BL      17            // Backlight (LITE)
 #define PIN_TFT_CS  20            // Display Chip Select
 #define PIN_CARD_CS 21            // SD Card Chip Select
 #define PIN_DC      22            // Data/Command (D/C)

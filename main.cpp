@@ -20,24 +20,19 @@ void blik(){
 
 	while (true) {
 		gpio_put(LED_PIN, 1);
+		printf("LED ON!\n");
 		sleep_ms(randomInt(0, 250));
 		gpio_put(LED_PIN, 0);
+		printf("LED OFF!\n");
 		sleep_ms(randomInt(0, 250));
 	}
 }
 
 int main(){
-
+	stdio_init_all();
+	sleep_ms(1000);
+	printf("TriggEngine v0.1\n");
 	init_display();
-
-	// for (size_t i = 0; i < 5; i++)
-	// {
-	// 	gpio_put(18, 0);
-	// 	sleep_ms(500);
-	// 	gpio_put(18, 1);
-	// 	sleep_ms(500);
-	// }
-
 	blik();
 	return 0;
 }

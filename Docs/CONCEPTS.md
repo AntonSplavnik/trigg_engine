@@ -4,11 +4,18 @@ This document serves as an index to all hardware and software concepts for the T
 
 ---
 
+## Quick Reference
+
+- **[TECHNICAL_SPECS.md](TECHNICAL_SPECS.md)** - Complete hardware specs, calculations, conversions, and performance numbers
+
+---
+
 ## Hardware
 
 - **[GPIO (General Purpose I/O)](hardware/gpio.md)** - Pin control, input/output modes, and pull resistors
 - **[SPI Communication](hardware/spi.md)** - Serial Peripheral Interface protocol
 - **[Display Pins](hardware/display_pins.md)** - Pin descriptions and functions
+- **[Display Commands](hardware/display_commands.md)** - How display commands work, hex values, and data flow
 - **[RGB565 Color Format](hardware/rgb565.md)** - Color encoding for the display
 
 ---
@@ -29,10 +36,16 @@ This document serves as an index to all hardware and software concepts for the T
 
 ---
 
+## Development Tools
+
+- **[Picotool](PICOTOOL.md)** - Flashing, debugging, and device management tool
+
+---
+
 ## Related Documentation
 
 - **[DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)** - Architectural decisions and rationale
 - **[SETUP.md](SETUP.md)** - Build and flash instructions
-- **[PICO_REFERENCE.md](PICO_REFERENCE.md)** - Pico SDK function reference
+- **[PICO_SDK_REFERENCE.md](PICO_SDK_REFERENCE.md)** - Pico SDK function reference
 - **[INFO.md](INFO.md)** - Development roadmap and milestones
 - **[CLAUDE.md](../CLAUDE.md)** - Project instructions and constraints

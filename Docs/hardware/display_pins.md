@@ -126,12 +126,78 @@ gpio_put(PIN_CARD_CS, 1);  // SD card OFF
 
 ## Display Initialization Sequence
 
-The ST7735 display needs to be told how to operate:
+The display initialization happens in three distinct phases. All phases must complete successfully before the display will show anything.
 
-1. **Wake from sleep** - Display starts in low-power mode
-2. **Set pixel format** - Tell it we're using RGB565 (16-bit color)
-3. **Configure orientation** - Portrait vs landscape, mirroring
-4. **Define frame rate** - How fast to refresh (60Hz typical)
-5. **Turn on display** - Enable the actual screen output
+### Phase 1: Hardware Setup (SPI and GPIO)
 
-Without these commands, the display won't show anything even if backlight is on.
+**Before sending any commands, the hardware must be configured:**
+
+1. **Initialize SPI bus**
+   ```cpp
+   spi_init(spi0, 62500000);  // 62.5 MHz
+   spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+   ```
+
+2. **Assign SPI pins to hardware SPI function**
+   ```cpp
+   gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);   // GPIO 2
+   gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);  // GPIO 3
+   ```
+
+3. **Initialize control pins as GPIO outputs**
+   ```cpp
+   // Chip Select (CS)
+   gpio_init(PIN_TFT_CS);
+   gpio_set_dir(PIN_TFT_CS, GPIO_OUT);
+   gpio_put(PIN_TFT_CS, 1);  // HIGH = deselected (safe state)
+
+   // Data/Command (DC)
+   gpio_init(PIN_DC);
+   gpio_set_dir(PIN_DC, GPIO_OUT);
+   gpio_put(PIN_DC, 0);  // LOW = command mode (default)
+
+   // Reset (RESET)
+   gpio_init(PIN_RESET);
+   gpio_set_dir(PIN_RESET, GPIO_OUT);
+   gpio_put(PIN_RESET, 1);  // HIGH = normal operation (not in reset)
+
+   // Backlight (BL)
+   gpio_init(PIN_BL);
+   gpio_set_dir(PIN_BL, GPIO_OUT);
+   gpio_put(PIN_BL, 1);  // HIGH = backlight ON (or start LOW if preferred)
+   ```
+
+**Critical initial states:**
+- **CS = HIGH** - Display must be deselected until we're ready to talk
+- **DC = LOW** - Default to command mode
+- **RESET = HIGH** - Display not in reset state
+- **BL = HIGH or LOW** - Your choice (HIGH = visible immediately)
+
+### Phase 2: Hardware Reset
+
+**Perform a hardware reset to ensure clean state:**
+
+```cpp
+gpio_put(PIN_RESET, 0);  // Pull RESET LOW
+sleep_ms(10);            // Hold for at least 10ms
+gpio_put(PIN_RESET, 1);  // Release RESET (back to HIGH)
+sleep_ms(120);           // Wait for display to complete internal boot
+```
+
+**Why this matters:**
+- Resets the ST7735 chip to known state
+- Clears any garbage in display memory
+- Required after power-on before sending commands
+- 120ms delay is critical - display is initializing internally
+
+### Phase 3: ST7735 Configuration (SPI Commands)
+
+**Now the display is ready to receive configuration commands:**
+
+1. **Wake from sleep** (SLPOUT) - Display starts in low-power mode
+2. **Set pixel format** (COLMOD) - Tell it we're using RGB565 (16-bit color)
+3. **Configure orientation** (MADCTL) - Portrait vs landscape, mirroring
+4. **Define frame rate** (FRMCTR) - How fast to refresh (60Hz typical)
+5. **Turn on display** (DISPON) - Enable the actual screen output
+
+**Important:** Without completing ALL three phases, the display won't show anything even if backlight is on. Each phase depends on the previous one being completed correctly.
