@@ -6,6 +6,7 @@ This document serves as an index to all hardware and software concepts for the T
 
 ## Hardware
 
+- **[GPIO (General Purpose I/O)](hardware/gpio.md)** - Pin control, input/output modes, and pull resistors
 - **[SPI Communication](hardware/spi.md)** - Serial Peripheral Interface protocol
 - **[Display Pins](hardware/display_pins.md)** - Pin descriptions and functions
 - **[RGB565 Color Format](hardware/rgb565.md)** - Color encoding for the display

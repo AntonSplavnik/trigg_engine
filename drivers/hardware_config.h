@@ -5,7 +5,7 @@
 #define PIN_SCK     2             // SPI Clock
 #define PIN_MOSI    3             // SPI Data Out
 #define PIN_MISO    19            // SPI Data In (SD card only, not needed for display)
-#define PIN_BL      18            // Backlight (LITE)
+#define PIN_BL      17            // Backlight (LITE)
 #define PIN_TFT_CS  20            // Display Chip Select
 #define PIN_CARD_CS 21            // SD Card Chip Select
 #define PIN_DC      22            // Data/Command (D/C)
