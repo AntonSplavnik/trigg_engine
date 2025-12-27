@@ -4,16 +4,15 @@
 #include "stdlib.h"
 #include "random"
 
-static std::mt19937 rng(time_us_32());
+const uint LED_PIN = 25;
+const uint LED_L = 28;
+const uint LED_R = 4;
 
+static std::mt19937 rng(time_us_32());
 int randomInt(int min, int max) {
 	std::uniform_int_distribution<int> dist(min, max);
 	return dist(rng);
 }
-
-const uint LED_PIN = 25;
-const uint LED_L = 28;
-const uint LED_R = 4;
 
 void init_led_pins_as_GPIO() {
 

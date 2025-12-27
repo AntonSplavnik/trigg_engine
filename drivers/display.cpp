@@ -1,11 +1,13 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
+#include "hardware/pwm.h"
+
 #include "hardware_config.h"
-#include "display.h"
 #include "display_internal.h"
 #include "spi.h"
+#include "display.h"
 
-// Low-level SPI communication
+// Low-level SPI communication helpers
 void send_command(uint8_t cmd) {
 	gpio_put(PIN_TFT_CS, 0);
 	gpio_put(PIN_DC, 0);
@@ -32,6 +34,35 @@ void init_pin(int pin, enum gpio_dir GPIO, int voltage) {
 	gpio_put(pin, voltage);
 }
 
+void init_backlight_pwm() {
+	// Tell GPIO 17 it's controlled by PWM
+	gpio_set_function(PIN_BL, GPIO_FUNC_PWM);
+
+	// Find PWM slice for GPIO 17
+	uint slice_num = pwm_gpio_to_slice_num(PIN_BL);
+
+	// Set PWM frequency (1 kHz is good for backlights)
+	pwm_set_wrap(slice_num, 999);  // TOP value (0-999 = 1000 steps)
+
+	// Set initial brightness (50% = 500)
+	pwm_set_gpio_level(PIN_BL, 500);
+
+	// Enable PWM slice
+	pwm_set_enabled(slice_num, true);
+}
+void set_brightness_level(uint16_t level) {
+	// level: 0 (off) to 999 (max brightness)
+	uint slice_num = pwm_gpio_to_slice_num(PIN_BL);
+	if(level > 999) level = 999;
+	else if (level < 0) level = 0;
+	pwm_set_gpio_level(PIN_BL, level);
+}
+void set_brightness_percent(uint16_t percent) {
+	if(percent > 100) percent = 100;
+	else if (percent < 0) percent = 0;
+	set_brightness_level((percent * 999) / 100);
+}
+
 void init_control_pins_as_GPIO() {
 	// Initialize CS (Chip Select)
 	init_pin(PIN_TFT_CS, GPIO_OUT, 1); // Start HIGH (not selected)
@@ -40,7 +71,9 @@ void init_control_pins_as_GPIO() {
 	// Initialize RESET
 	init_pin(PIN_RESET, GPIO_OUT, 1); // Start HIGH (not in reset)
 	// Initialize Backlight
-	init_pin(PIN_BL, GPIO_OUT, 1); // Turn backlight ON
+	init_backlight_pwm();
+	sleep_ms(2000);
+	set_brightness_level(250);
 }
 
 // Hardware reset sequence
@@ -50,7 +83,6 @@ void reset_display() {
 	gpio_put(PIN_RESET, 1);  // Pull RESET high
 	sleep_ms(120);           // Wait for display to boot
 }
-
 
 // Main display initialization
 void init_display(){
@@ -64,4 +96,3 @@ void init_display(){
 	sleep_ms(1000);
 	color_test2();
 }
-

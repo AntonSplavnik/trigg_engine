@@ -24,6 +24,7 @@ target_link_libraries(${PROJECT_NAME}
     hardware_spi
     hardware_gpio
     hardware_dma
+    hardware_pwm
 )
 
 # Enable USB output (for printf debugging)
