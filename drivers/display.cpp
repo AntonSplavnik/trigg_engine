@@ -44,6 +44,8 @@ void init_backlight_pwm() {
 	// Set PWM frequency (1 kHz is good for backlights)
 	pwm_set_wrap(slice_num, 999);  // TOP value (0-999 = 1000 steps)
 
+	pwm_set_clkdiv(slice_num, 125.0f); // 1 kHz frequency
+
 	// Set initial brightness (50% = 500)
 	pwm_set_gpio_level(PIN_BL, 500);
 
