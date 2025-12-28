@@ -1,6 +1,8 @@
 #include "pico/stdlib.h"
+
 #include "display.h"
 #include "display_internal.h"
+#include "hardware_config.h"
 #include "st7735_driver.h"
 
 void init_display_commands() {
@@ -51,23 +53,6 @@ void set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 	send_command(ST7735_RAMWR);
 }
 
-void color_test1() {
-	set_window(0, 0, 127, 159);  // Full screen
-
-	for (int i = 0; i < 20480; i++) {
-		send_data_byte(0xF8);
-		send_data_byte(0x00);
-	}
-}
-void color_test2() {
-	set_window(0, 0, 127, 159);
-
-	// Fill entire screen with black first
-	for (int i = 0; i < 20480; i++) {
-		send_data_byte(0x00);
-		send_data_byte(0x00);
-	}
-}
 void display_toggle_test() {
 	// Turn display off
 	send_command(ST7735_DISPOFF);

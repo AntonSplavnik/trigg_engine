@@ -7,6 +7,9 @@
 #include "spi.h"
 #include "display.h"
 
+const uint16_t DISPLAY_WIDTH = SCREEN_WIDTH;
+const uint16_t DISPLAY_HEIGHT = SCREEN_HEIGHT;
+
 // Low-level SPI communication helpers
 void send_command(uint8_t cmd) {
 	gpio_put(PIN_TFT_CS, 0);
@@ -48,7 +51,7 @@ void init_backlight_pwm() {
 	pwm_set_clkdiv(slice_num, 125.0f); // 1 kHz frequency
 
 	// Set initial brightness (50% = 500)
-	pwm_set_gpio_level(PIN_BL, 500);
+	pwm_set_gpio_level(PIN_BL, 0);
 
 	// Enable PWM slice
 	pwm_set_enabled(slice_num, true);
@@ -85,10 +88,8 @@ void reset_display() {
 void init_display(){
 	init_SPI_bus();
 	init_SPI_pins();
-	init_display_pins(); // CS, DC, RESET as GPIO
+	init_display_pins();
 	reset_display();
 	init_display_commands();
-	color_test1();
-	sleep_ms(1000);
-	color_test2();
+	set_brightness_level(500);
 }

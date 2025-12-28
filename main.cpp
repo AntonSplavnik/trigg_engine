@@ -5,6 +5,9 @@
 #include "random"
 #include "drivers/display.h"
 
+#include "pico/time.h"
+#include <math.h>
+
 const uint LED_PIN = 25;
 const uint LED_L = 28;
 const uint LED_R = 4;
@@ -23,22 +26,9 @@ void init_led_pwm(uint pin) {
 	pwm_set_gpio_level(pin, 0);
 	pwm_set_enabled(slice, true);
 }
-void set_brightness_level(uint pin, uint16_t level) {
+void set_led_brightness(uint pin, uint16_t level) {
 	if(level > 1023) level = 1023;
 	pwm_set_gpio_level(pin, level);
-}
-
-void dim_led(uint led, uint16_t level) {
-	for (size_t i = 0; i < level; i++)
-	{
-		set_brightness_level(led, i);
-		sleep_ms(1);
-	}
-	for (int i = level; i >= 0; i--)
-	{
-		set_brightness_level(led, i);
-		sleep_ms(1);
-	}
 }
 void init_led_pins() {
 
@@ -58,35 +48,69 @@ void init_led_pins() {
 	// gpio_set_dir(LED_R, GPIO_OUT);
 }
 
+void ambient_glow(uint led, float speed) {
+	 float time_sec = time_us_64() / 1000000.0f;
+
+	uint16_t brightness = (sinf(time_sec *  speed) + 1.0f) * 500.0f;
+	set_led_brightness(led, brightness);
+}
+void dim_led(uint led, float speed ) {
+	float time_sec = time_us_64() / 1000000.0f;
+
+	// Triangle wave (0→1→0→1...)
+	float cycle = fmodf(time_sec * speed, 2.0f);  // 2-second cycle
+	float brightness_normalized = (cycle < 1.0f) ? cycle : (2.0f - cycle);
+
+	uint16_t brightness = brightness_normalized * 1023.0f;
+	set_led_brightness(led, brightness);
+}
+void dim_led(uint led, uint16_t level) {
+	for (size_t i = 0; i < level; i++)
+	{
+		set_led_brightness(led, i);
+		sleep_ms(1);
+	}
+	for (int i = level; i >= 0; i--)
+	{
+		set_led_brightness(led, i);
+		sleep_ms(1);
+	}
+}
+
 void blik(){
 
 	init_led_pins();
 
 	while (true) {
-		gpio_put(LED_PIN, 1);
-		printf("LED ON!\n");
-		sleep_ms(randomInt(0, 250));
-		gpio_put(LED_PIN, 0);
-		printf("LED OFF!\n");
+		// Onboard LED blinks
+		// gpio_put(LED_PIN, 1);
+		// sleep_ms(randomInt(0, 250));
+		// gpio_put(LED_PIN, 0);
 
-		dim_led(LED_L, 1023);
-		sleep_ms(randomInt(0, 250));
-		dim_led(LED_R, 1023);
-		sleep_ms(randomInt(0, 250));
+		// Left LED
+		// dim_led(LED_L, 1023);
+		// sleep_ms(randomInt(0, 250));
 
 		// gpio_put(LED_L, 1);
 		// sleep_ms(randomInt(0, 250));
 		// gpio_put(LED_L, 0);
 
+		// Right LED
+		// sleep_ms(randomInt(0, 250));
+
 		// gpio_put(LED_R, 1);
 		// sleep_ms(randomInt(0, 250));
 		// gpio_put(LED_R, 0);
+
+		dim_led(LED_L, 0.5f);
+		ambient_glow(LED_R, 1.0f);
+		sleep_ms(10);
 	}
 }
 
 int main(){
 	stdio_init_all();
-	sleep_ms(1000);
+	sleep_ms(3000);
 	printf("TriggEngine v0.1\n");
 	init_display();
 	blik();
