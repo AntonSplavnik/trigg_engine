@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
     main.cpp
     drivers/spi.cpp
     drivers/display.cpp
+    drivers/buttons.cpp
     drivers/st7735_driver.cpp
     engine/graphics/framebuffer.cpp
 )

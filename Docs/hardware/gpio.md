@@ -80,6 +80,113 @@ if (gpio_get(BUTTON_PIN) == 0) {
 
 ---
 
+## Button Polling for Games
+
+### Why Polling Instead of Interrupts?
+
+For continuous game input (character movement), **polling is better than interrupts**:
+
+**Polling (reads button state once per frame):**
+- Simple and predictable
+- Minimal CPU overhead (~16 cycles per frame at 60 FPS)
+- Natural timing synchronized with game loop
+- No debouncing needed - frame time (16.67ms) handles bounce
+
+**Level Interrupts (`GPIO_IRQ_LEVEL_HIGH`) - DO NOT USE:**
+- Fire continuously while button held (1000s per second)
+- Overwhelm CPU with context switches
+- Destroy game performance
+
+**Edge Interrupts (`GPIO_IRQ_EDGE_FALL`) - Only for UI:**
+- Good for detecting single button press events
+- Not suitable for continuous movement (miss held state)
+
+### Implementation Pattern
+
+```cpp
+// drivers/buttons.h
+struct ButtonState {
+    bool w, a, s, d;
+    bool i, j, k, l;
+};
+
+namespace Buttons {
+    void init_buttons_pins();
+    ButtonState button_polling();
+}
+
+// drivers/buttons.cpp
+void init_button(int pin) {
+    gpio_init(pin);
+    gpio_set_dir(pin, GPIO_IN);
+    gpio_pull_up(pin);  // Active-LOW buttons
+}
+
+ButtonState button_polling() {
+    ButtonState state;
+    state.w = !gpio_get(BTN_W);  // Invert: LOW = pressed
+    state.a = !gpio_get(BTN_A);
+    state.s = !gpio_get(BTN_S);
+    state.d = !gpio_get(BTN_D);
+    // ... etc
+    return state;
+}
+
+// Game loop
+void game_loop() {
+    while(true) {
+        ButtonState buttons = button_polling();
+
+        // Continuous movement - works while button held
+        if (buttons.w) player_y -= 1;
+        if (buttons.s) player_y += 1;
+        if (buttons.a) player_x -= 1;
+        if (buttons.d) player_x += 1;
+
+        // Diagonal movement works automatically
+        // (multiple if statements execute in same frame)
+
+        render();
+        swap_buffers();
+    }
+}
+```
+
+### Performance Cost
+
+At 60 FPS with 8 buttons:
+- 8 × `gpio_get()` calls per frame
+- Each call ~1-2 CPU cycles (register read)
+- Total: **~16 cycles = 0.0001ms on 133MHz Pico**
+- **0.0006% of 16.67ms frame budget**
+
+Polling buttons will not slow down your game.
+
+### Screen Boundary Clamping
+
+When implementing movement, prevent objects from going off-screen:
+
+```cpp
+void update_player(ButtonState buttons, Player& player) {
+    // Check bounds BEFORE moving (uint16_t can't be negative!)
+    if (buttons.w && player.y > 0)
+        player.y -= 1;
+    if (buttons.s && player.y + player.height < SCREEN_HEIGHT)
+        player.y += 1;
+    if (buttons.a && player.x > 0)
+        player.x -= 1;
+    if (buttons.d && player.x + player.width < SCREEN_WIDTH)
+        player.x += 1;
+}
+```
+
+**Why check before moving?**
+- Position uses `uint16_t` (unsigned integers)
+- Cannot be negative - wraps to 65535 instead
+- Must prevent decrement below 0 or increment beyond screen bounds
+
+---
+
 ## Pull-Up and Pull-Down Resistors
 
 ### The Problem
@@ -177,12 +284,12 @@ gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
 
 **Why SPI?** The hardware can send 62.5 million bits per second automatically. Doing this manually with GPIO would be impossible.
 
-### Game Input Pins (Future - Regular GPIO)
+### Game Input Pins (Regular GPIO)
 
-Sprig uses a button matrix for game controls:
-- 8 buttons arranged in a grid
-- Will use regular GPIO in INPUT mode with pull-ups
-- Read with `gpio_get(pin)` in game loop
+8 buttons (W/A/S/D and I/J/K/L) for game controls:
+- Regular GPIO in INPUT mode with pull-ups
+- Polled once per frame in game loop with `gpio_get(pin)`
+- Continuous press detection for free movement
 
 ---
 

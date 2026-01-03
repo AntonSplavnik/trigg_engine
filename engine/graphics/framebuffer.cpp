@@ -1,4 +1,5 @@
 #include "pico/stdlib.h"
+#include "stdio.h"
 
 #include "st7735_driver.h"
 #include "display.h"
@@ -31,10 +32,55 @@ void Framebuffer::set_pixel(uint16_t x, uint16_t y, uint16_t color) {
 	back_buffer[y * DISPLAY_WIDTH + x] = (color << 8) | (color >> 8);
 }
 
-void Framebuffer::draw_line(uint16_t x, uint16_t y, uint16_t line_len, uint16_t color) {
+void Framebuffer::draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t color) {
 	uint16_t swapped_color = (color << 8) | (color >> 8);
-	for (size_t i = 0; i < line_len; i++) {
+	for (size_t i = 0; i < width; i++) {
 		Framebuffer::back_buffer[y * DISPLAY_WIDTH + x + i] = swapped_color;
+	}
+}
+
+void Framebuffer::draw_rectangle(uint16_t y, uint16_t height, uint16_t x, uint16_t width, uint16_t color) {
+
+
+	if(y > SCREEN_HEIGHT) {
+		printf("[ERROR] starting raw out of bound");
+		return;
+	}
+	if(height > SCREEN_HEIGHT - y) {
+		printf("[ERROR] number of raws out of bound");
+		return;
+	}
+
+	size_t end_raw_y = y + height;
+	for (size_t i = y; i < end_raw_y; i++) {
+		Framebuffer::draw_line(x, y, width, color);
+	}
+}
+
+void memset16(uint16_t *dest, uint16_t value, size_t count) {
+
+	for (size_t i = 0; i < count; i++) {
+		dest[i] = value;
+	}
+}
+void Framebuffer::draw_rectangle_memset(uint16_t y, uint16_t height, uint16_t x, uint16_t width, uint16_t color) {
+
+	if(y > SCREEN_HEIGHT) {
+		printf("[ERROR] starting raw out of bound");
+		return;
+	}
+	if(height > SCREEN_HEIGHT - y) {
+		printf("[ERROR] number of raws out of bound");
+		return;
+	}
+
+	uint swapped_color = (color << 8) | (color >> 8);
+	uint16_t *dest = &back_buffer[y * DISPLAY_WIDTH + x];
+
+	size_t end_raw_y = y + height;
+	for (size_t i = y; i < end_raw_y; i++) {
+		memset16(dest, swapped_color, width);
+		dest += DISPLAY_WIDTH;
 	}
 }
 
@@ -44,8 +90,6 @@ void Framebuffer::send_to_display() {
 	uint16_t buffer_size = DISPLAY_WIDTH * DISPLAY_HEIGHT;
 	send_data((uint8_t*)front_buffer, buffer_size * 2);
 }
-
-
 
 void color_test_nobuffer() {
 	set_window(0, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1);  // Full screen

@@ -12,10 +12,13 @@ namespace Framebuffer {
 
 	void init();
 	void swap_buffers();
-	void fill_with_color(uint16_t color);
-	void draw_line(uint16_t x, uint16_t y, uint16_t line_len, uint16_t color);
 	void set_pixel(uint16_t x, uint16_t y, uint16_t color);
 	void send_to_display();
+
+	void fill_with_color(uint16_t color);
+	void draw_line(uint16_t x, uint16_t y, uint16_t line_len, uint16_t color);
+	void draw_rectangle(uint16_t start_raw_y, uint16_t number_of_raws_y, uint16_t x, uint16_t line_len, uint16_t color);
+	void draw_rectangle_memset(uint16_t start_raw_y, uint16_t number_of_raws_y, uint16_t x, uint16_t line_len, uint16_t color);
 };
 
 #endif

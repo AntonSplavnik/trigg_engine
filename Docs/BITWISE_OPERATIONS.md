@@ -494,23 +494,23 @@ uint32_t aligned = (addr + 255) & ~255;
 
 ## Quick Reference Table
 
-| Operation | Operator | Purpose | Example |
-|-----------|----------|---------|---------|
-| Right shift | `>>` | Divide by 2^n | `160 >> 4 = 10` |
-| Left shift | `<<` | Multiply by 2^n | `10 << 4 = 160` |
-| AND | `&` | Filter/mask bits | `0xF0 & 0xFF = 0xF0` |
-| OR | `\|` | Combine bits | `0xF0 \| 0x0F = 0xFF` |
-| XOR | `^` | Toggle bits | `0xF0 ^ 0xFF = 0x0F` |
-| NOT | `~` | Invert all bits | `~0xF0 = 0x0F` (8-bit) |
+| Operation   | Operator | Purpose          | Example                |
+|-------------|----------|------------------|------------------------|
+| Right shift | `>>`     | Divide by 2^n    | `160 >> 4 = 10`        |
+| Left shift  | `<<`     | Multiply by 2^n  | `10 << 4 = 160`        |
+| AND         | `&`      | Filter/mask bits | `0xF0 & 0xFF = 0xF0`   |
+| OR          | `\|`     | Combine bits     | `0xF0 \| 0x0F = 0xFF`  |
+| XOR         | `^`      | Toggle bits      | `0xF0 ^ 0xFF = 0x0F`   |
+| NOT         | `~`      | Invert all bits  | `~0xF0 = 0x0F` (8-bit) |
 
 ## Memory Sizes
 
-| Type | Bytes | Bits | Range |
-|------|-------|------|-------|
-| `uint8_t` | 1 | 8 | 0 - 255 |
-| `uint16_t` | 2 | 16 | 0 - 65,535 |
-| `uint32_t` | 4 | 32 | 0 - 4,294,967,295 |
-| `uint64_t` | 8 | 64 | 0 - 18,446,744,073,709,551,615 |
+| Type       | Bytes | Bits | Range                          |
+|------------|-------|------|--------------------------------|
+| `uint8_t`  | 1     | 8    | 0 - 255                        |
+| `uint16_t` | 2     | 16   | 0 - 65,535                     |
+| `uint32_t` | 4     | 32   | 0 - 4,294,967,295              |
+| `uint64_t` | 8     | 64   | 0 - 18,446,744,073,709,551,615 |
 
 ## Power of 2 Reference
 

@@ -8,6 +8,10 @@
 
 #include "drivers/display.h"
 #include "framebuffer.h"
+#include "buttons.h"
+
+using namespace Framebuffer;
+using namespace Buttons;
 
 const uint LED_PIN = 25;
 const uint LED_L = 28;
@@ -130,16 +134,15 @@ static const NamedColor COLORS[] = {
 
 void color_test() {
 
-	Framebuffer::init();
+	init();
 	sleep_ms(3000);
 
 	for(const auto& color: COLORS) {
-		Framebuffer::fill_with_color(color.value);
-		Framebuffer::swap_buffers();
-		Framebuffer::send_to_display();
+		fill_with_color(color.value);
+		swap_buffers();
+		send_to_display();
 		sleep_ms(3000);
 	}
-
 }
 
 void fps_counter() {
@@ -158,49 +161,97 @@ void fps_counter() {
 }
 
 void random_pixels_test() {
-	while(true) {
-		Framebuffer::fill_with_color(0x0000);  // Black background
-		// Draw complex scene to back buffer
-		for(int i = 0; i < 5000; i++) {
-			Framebuffer::set_pixel(random_int_modulo(0, 160), random_int_modulo(0, 128), COLORS[random_int_modulo(5, 7)].value);
-		}
 
-		fps_counter();
-
-		Framebuffer::swap_buffers();
-		Framebuffer::send_to_display();
-		// No sleep - immediate next frame!
+	fill_with_color(0x0000);  // Black background
+	// Draw complex scene to back buffer
+	for(int i = 0; i < 5000; i++) {
+		set_pixel(random_int_modulo(0, 160), random_int_modulo(0, 128), COLORS[random_int_modulo(5, 7)].value);
 	}
+
+	fps_counter();
+
+	swap_buffers();
+	send_to_display();
+	// No sleep - immediate next frame!
 }
+
 void line_test(){
-	Framebuffer::fill_with_color(0x0000);
-	Framebuffer::draw_line(50, 50, 50, 0xFFE0);
-	Framebuffer::swap_buffers();
-	Framebuffer::send_to_display();
+
+	fill_with_color(0x0000);
+	draw_line(50, 50, 50, 0xFFE0);
+	swap_buffers();
+	send_to_display();
 }
 
-void rectangle_test(uint16_t start_raw_y, uint16_t number_of_raws_y, uint16_t x, uint16_t line_len, uint16_t color){
-	if(start_raw_y > SCREEN_HEIGHT - 1) start_raw_y = SCREEN_HEIGHT - 1;
-	if(number_of_raws_y > SCREEN_HEIGHT - 1) number_of_raws_y = SCREEN_HEIGHT - 1;
+void rectangle_test() {
 
-	Framebuffer::fill_with_color(0x0000);
-	for (size_t y = start_raw_y; y < start_raw_y+number_of_raws_y; y++)
+	fill_with_color(0x0000);
+	draw_rectangle_memset(128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0);
+	swap_buffers();
+	send_to_display();
+}
+
+struct Rectangle {
+	uint16_t y;
+	uint16_t height;
+	uint16_t x;
+	uint16_t width;
+	uint16_t color;
+};
+
+enum Movement {
+	up,
+	down,
+	left,
+	right
+};
+
+void performe_button_action(ButtonState state, Rectangle& rect) {
+
+      if(state.w && rect.y > 0) rect.y -= 1;
+      if(state.a && rect.x > 0) rect.x -= 1;
+      if(state.s && rect.y + rect.height < SCREEN_HEIGHT) rect.y += 1;
+      if(state.d && rect.x + rect.width < SCREEN_WIDTH) rect.x += 1;
+}
+
+void movement_tracking_test() {
+
+	Rectangle rect = {128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0};
+	fill_with_color(0x0000);
+	draw_rectangle_memset(rect.y, rect.height, rect.x, rect.width, rect.color);
+	swap_buffers();
+	send_to_display();
+
+	ButtonState buttons;
+	while (true)
 	{
-		Framebuffer::draw_line(x, y, line_len, color);
+		buttons = button_polling();
+		if(buttons.a || buttons.d || buttons.i || buttons.j || buttons.k || buttons.l || buttons.s || buttons.w) {
+			fill_with_color(0x0000);
+			performe_button_action(buttons, rect);
+			draw_rectangle_memset(rect.y, rect.height, rect.x, rect.width, rect.color);
+			swap_buffers();
+			send_to_display();
+		}
 	}
-	Framebuffer::swap_buffers();
-	Framebuffer::send_to_display();
 }
 
 int main(){
+
 	stdio_init_all();
 	sleep_ms(3000);
+
 	printf("TriggEngine v0.1\n");
+
 	init_display();
+	init_buttons_pins();
+
+	// color_test();
 	// random_pixels_test();
 	// line_test();
-	rectangle_test(128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0);
-	// color_test();
+	// rectangle_test();
+	movement_tracking_test();
 	blik();
+
 	return 0;
 }
