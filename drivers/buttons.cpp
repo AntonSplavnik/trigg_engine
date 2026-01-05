@@ -23,8 +23,6 @@ void Buttons::init_buttons_pins() {
 	init_button(BTN_L, GPIO_IN);
 }
 
-
-
 ButtonState Buttons::button_polling( ) {
 	ButtonState state;
 	state.w = !gpio_get(BTN_W);

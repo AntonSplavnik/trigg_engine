@@ -37,6 +37,9 @@ void init_display_commands() {
 	sleep_ms(100);
 }
 
+// Sets rectangular drawing window from (x1,y1) to (x2,y2)
+// Each 16-bit coord split into high/low bytes for SPI
+// Flow: CASET (X range) → RASET (Y range) → RAMWR (ready for pixel data)
 void set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 
 	send_command(ST7735_CASET);

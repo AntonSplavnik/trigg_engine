@@ -208,10 +208,10 @@ enum Movement {
 
 void performe_button_action(ButtonState state, Rectangle& rect) {
 
-      if(state.w && rect.y > 0) rect.y -= 1;
-      if(state.a && rect.x > 0) rect.x -= 1;
-      if(state.s && rect.y + rect.height < SCREEN_HEIGHT) rect.y += 1;
-      if(state.d && rect.x + rect.width < SCREEN_WIDTH) rect.x += 1;
+	if(state.w && rect.y > 0) rect.y -= 1;
+	if(state.a && rect.x > 0) rect.x -= 1;
+	if(state.s && rect.y + rect.height < SCREEN_HEIGHT) rect.y += 1;
+	if(state.d && rect.x + rect.width < SCREEN_WIDTH) rect.x += 1;
 }
 
 void movement_tracking_test() {
@@ -230,6 +230,7 @@ void movement_tracking_test() {
 			fill_with_color(0x0000);
 			performe_button_action(buttons, rect);
 			draw_rectangle_memset(rect.y, rect.height, rect.x, rect.width, rect.color);
+			fps_counter();
 			swap_buffers();
 			send_to_display();
 		}

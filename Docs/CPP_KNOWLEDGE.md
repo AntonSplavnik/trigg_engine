@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Compile-Time Constants (constexpr)](#compile-time-constants-constexpr)
 - [Random Number Generation](#random-number-generation)
+- [Volatile Keyword](#volatile-keyword)
 - [Smart Pointers](#smart-pointers)
 - [Lambda Functions](#lambda-functions)
 - [Move Semantics](#move-semantics)
@@ -158,6 +159,179 @@ public:
 Random rng;
 int x = rng.getInt(0, 100);
 ```
+
+---
+
+## Volatile Keyword
+
+### What is volatile?
+
+The `volatile` keyword tells the compiler: **"This variable can change unexpectedly - don't optimize reads/writes to it."**
+
+### Why volatile Matters in Embedded Systems
+
+**Normal Variables:**
+```cpp
+int counter = 0;
+
+// Compiler sees this loop:
+while (counter < 10) {
+    // Do something
+}
+
+// Compiler optimizes to:
+if (counter < 10) {
+    while (true) {  // Infinite loop!
+        // Do something
+    }
+}
+// Compiler assumes: "counter never changes inside loop,
+// so check it once and cache the result"
+```
+
+**volatile Variables:**
+```cpp
+volatile int counter = 0;
+
+// Compiler sees this loop:
+while (counter < 10) {
+    // Do something
+}
+
+// Compiler MUST re-read counter every iteration:
+// Cannot optimize or cache the value
+// Reads directly from memory each time
+```
+
+### When to Use volatile
+
+**1. Variables Modified by Interrupts (ISR)**
+
+```cpp
+volatile bool button_pressed = false;
+
+void button_isr() {
+    button_pressed = true;  // ISR changes this
+}
+
+int main() {
+    while (!button_pressed) {
+        // Without volatile, compiler might cache button_pressed
+        // Loop would never see ISR's change!
+    }
+}
+```
+
+**2. Hardware Registers (Memory-Mapped I/O)**
+
+```cpp
+volatile uint32_t* GPIO_REG = (uint32_t*)0x40014000;
+
+// Hardware can change register value externally
+uint32_t status = *GPIO_REG;  // Must read from hardware every time
+```
+
+**3. Variables Shared Between Threads**
+
+```cpp
+volatile bool stop_flag = false;
+
+void worker_thread() {
+    while (!stop_flag) {  // Must check actual memory
+        // Work...
+    }
+}
+```
+
+### When NOT to Use volatile
+
+**❌ Don't use volatile for thread synchronization:**
+```cpp
+// WRONG - not thread-safe!
+volatile int shared_counter = 0;
+shared_counter++;  // NOT atomic! Race condition!
+```
+
+Use proper synchronization (mutexes, atomics) instead.
+
+**❌ Don't use volatile for regular variables:**
+```cpp
+// WRONG - unnecessary
+volatile int total = a + b + c;
+```
+
+Only use when variable is modified externally (hardware, ISR, etc.).
+
+### volatile vs const
+
+You can combine them for read-only hardware registers:
+
+```cpp
+volatile const uint32_t* STATUS_REG = (uint32_t*)0x40014000;
+// const = we can't modify it
+// volatile = hardware can change it, always re-read
+```
+
+### Real Example: Button Input with ISR
+
+**Without volatile (BROKEN):**
+```cpp
+bool button_w_pressed = false;  // ❌ Compiler will optimize
+
+void button_callback(uint gpio, uint32_t events) {
+    button_w_pressed = true;  // ISR sets flag
+}
+
+void game_loop() {
+    while (true) {
+        if (button_w_pressed) {  // Compiler caches this check!
+            move_up();           // May never execute!
+        }
+    }
+}
+```
+
+**With volatile (CORRECT):**
+```cpp
+volatile bool button_w_pressed = false;  // ✅ Always re-read
+
+void button_callback(uint gpio, uint32_t events) {
+    button_w_pressed = true;  // ISR sets flag
+}
+
+void game_loop() {
+    while (true) {
+        if (button_w_pressed) {  // Always reads from memory
+            move_up();           // Works correctly!
+        }
+    }
+}
+```
+
+### Performance Impact
+
+**volatile prevents optimizations:**
+- Forces memory read/write every access
+- Cannot cache value in CPU register
+- Slower than non-volatile access
+
+**Use sparingly:**
+- Only when external changes are expected
+- Not needed for normal variables in single-threaded code
+- **Note:** For button polling (not ISR), volatile is NOT needed:
+
+```cpp
+// Polling - no ISR, no volatile needed
+bool pressed = !gpio_get(BTN_W);  // Direct hardware read
+```
+
+### Key Takeaways
+
+- `volatile` = "This can change unexpectedly, don't optimize"
+- Essential for ISR-modified variables and hardware registers
+- Does NOT provide thread safety or atomicity
+- Has performance cost - use only when necessary
+- Not needed for polling-based input (direct hardware reads)
 
 ---
 

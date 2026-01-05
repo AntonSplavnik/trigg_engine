@@ -1,5 +1,6 @@
 #include "pico/stdlib.h"
 #include "stdio.h"
+#include "cstring"
 
 #include "st7735_driver.h"
 #include "display.h"
@@ -8,7 +9,7 @@
 void Framebuffer::init() {
 
 	fill_with_color(0x0000);
-	Framebuffer::send_to_display();
+	send_to_display();
 }
 
 void Framebuffer::swap_buffers() {
@@ -35,7 +36,7 @@ void Framebuffer::set_pixel(uint16_t x, uint16_t y, uint16_t color) {
 void Framebuffer::draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t color) {
 	uint16_t swapped_color = (color << 8) | (color >> 8);
 	for (size_t i = 0; i < width; i++) {
-		Framebuffer::back_buffer[y * DISPLAY_WIDTH + x + i] = swapped_color;
+		back_buffer[y * DISPLAY_WIDTH + x + i] = swapped_color;
 	}
 }
 
@@ -53,16 +54,10 @@ void Framebuffer::draw_rectangle(uint16_t y, uint16_t height, uint16_t x, uint16
 
 	size_t end_raw_y = y + height;
 	for (size_t i = y; i < end_raw_y; i++) {
-		Framebuffer::draw_line(x, y, width, color);
+		draw_line(x, i, width, color);
 	}
 }
 
-void memset16(uint16_t *dest, uint16_t value, size_t count) {
-
-	for (size_t i = 0; i < count; i++) {
-		dest[i] = value;
-	}
-}
 void Framebuffer::draw_rectangle_memset(uint16_t y, uint16_t height, uint16_t x, uint16_t width, uint16_t color) {
 
 	if(y > SCREEN_HEIGHT) {
@@ -75,11 +70,16 @@ void Framebuffer::draw_rectangle_memset(uint16_t y, uint16_t height, uint16_t x,
 	}
 
 	uint swapped_color = (color << 8) | (color >> 8);
-	uint16_t *dest = &back_buffer[y * DISPLAY_WIDTH + x];
+	uint16_t *line = &back_buffer[y * DISPLAY_WIDTH + x];
+	for (size_t i = 0; i < width; i++) {
+		line[i] = swapped_color;
+	}
 
+	size_t line_len = width * sizeof(uint16_t);
+	uint16_t *dest = line + DISPLAY_WIDTH;
 	size_t end_raw_y = y + height;
 	for (size_t i = y; i < end_raw_y; i++) {
-		memset16(dest, swapped_color, width);
+		memcpy(dest, line, line_len);
 		dest += DISPLAY_WIDTH;
 	}
 }
