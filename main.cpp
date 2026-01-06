@@ -216,7 +216,6 @@ void movement_tracking_test_regular() {
 	send_to_display();
 
 	ButtonState buttons;
-	ButtonState buttons_old_pos;
 	while (true)
 	{
 		buttons = button_polling();
@@ -243,7 +242,6 @@ void movement_tracking_test_polac() {
 	send_to_display();
 
 	ButtonState buttons;
-	ButtonState buttons_old_pos;
 	while (true)
 	{
 		buttons = button_polling();
@@ -269,6 +267,18 @@ void movement_tracking_test_polac() {
 			fps_counter();
 		}
 	}
+}
+
+void sprite_test() {
+
+	// open file tith ifstream constructor late can read all files in directory.
+	// allocate memory for file len
+	// read file to the pointer
+	// parse file ? or rad line by line and parse during this process. probably whole file parsing is faster
+	// save again?
+	// draw sprite in buffer
+	// swap buffers
+	// send to display
 }
 
 int main(){

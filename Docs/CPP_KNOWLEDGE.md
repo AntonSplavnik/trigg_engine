@@ -1,12 +1,46 @@
 # C++ Knowledge Bank
 
 ## Table of Contents
+- [File I/O - ifstream Opening](#file-io---ifstream-opening)
 - [Compile-Time Constants (constexpr)](#compile-time-constants-constexpr)
 - [Random Number Generation](#random-number-generation)
 - [Volatile Keyword](#volatile-keyword)
+- [Static Keyword](#static-keyword)
+
 - [Smart Pointers](#smart-pointers)
 - [Lambda Functions](#lambda-functions)
 - [Move Semantics](#move-semantics)
+
+---
+
+## File I/O - ifstream Opening
+
+### Constructor Opening
+```cpp
+std::ifstream file("data.txt");  // Open immediately
+if (!file.is_open()) {
+    // Handle error
+}
+// Auto-closes when out of scope
+```
+**Use when:** Opening one file, filename known at creation
+
+### Separate open() Method
+```cpp
+std::ifstream file;              // Create empty stream
+file.open("data.txt");          // Open later
+if (!file.is_open()) {
+    // Handle error
+}
+
+file.close();                    // Can reuse
+file.open("other.txt");         // Open different file
+```
+**Use when:** Reusing stream for multiple files, conditional opening, filename unknown at creation
+
+### Key Difference
+- **Constructor approach** = declare + open in one step
+- **Separate open()** = declare first, open later (can reuse for multiple files)
 
 ---
 
@@ -332,6 +366,66 @@ bool pressed = !gpio_get(BTN_W);  // Direct hardware read
 - Does NOT provide thread safety or atomicity
 - Has performance cost - use only when necessary
 - Not needed for polling-based input (direct hardware reads)
+
+---
+
+## Static Keyword
+
+### Overview
+The `static` keyword has different meanings depending on context. This cheatsheet covers C vs C++ differences.
+
+### In Functions
+```cpp
+void foo() {
+    static int count = 0;  // Initialized ONCE, persists between calls
+    count++;
+}
+```
+**C & C++**: Identical behavior
+- Initialized only once (first call)
+- Retains value between function calls
+- Local scope, but persistent lifetime
+
+---
+
+### At Global/File Scope
+```cpp
+static int global_var = 42;
+static void helper() { }
+```
+**C & C++**: Identical behavior
+- **Internal linkage** - visible only in this translation unit (.c/.cpp file)
+- Cannot be accessed from other files (even with `extern`)
+- Use for "private" file-level variables/functions
+
+---
+
+### In Classes (C++ Only)
+```cpp
+class MyClass {
+    static int shared_var;          // Shared by all instances
+    static void utility() { }       // No 'this' pointer
+};
+
+// Definition required outside class
+int MyClass::shared_var = 0;
+```
+**C++**:
+- **Static member variable**: One copy shared by all instances
+- **Static member function**: No access to `this`, can only use static members
+- Must be defined outside class (except `constexpr` in C++11)
+
+---
+
+### Quick Reference
+
+| Context      | C | C++ | Effect                          |
+|--------------|---|-----|---------------------------------|
+| In function  | ✓ | ✓   | Persistent local variable       |
+| Global scope | ✓ | ✓   | Internal linkage (file-private) |
+| Class member | ✗ | ✓   | Shared across instances         |
+
+**Key difference**: C++ adds class-level `static` for shared state/behavior.
 
 ---
 

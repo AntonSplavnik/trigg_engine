@@ -630,3 +630,9 @@ Games include logic scripts (Lua, custom bytecode).
 📦 **Optional:** Most games fit entirely in Flash
 
 **Best practice:** Store frequently-accessed assets in Flash, large media files on SD card.
+
+---
+
+## See Also
+
+- **[Level Loading Strategies](level_loading.md)** - How to load game data from SD to RAM (BSS vs Heap)

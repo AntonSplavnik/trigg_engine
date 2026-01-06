@@ -126,3 +126,4 @@ SD Card (GB):
 - **[Flash Memory (2MB)](flash.md)** - Detailed guide to Flash storage
 - **[RAM (264KB)](ram.md)** - RAM usage and optimization
 - **[SD Card Storage](sd_card.md)** - When and how to use SD cards
+- **[Level Loading Strategies](level_loading.md)** - BSS vs Heap allocation for loading game levels from SD
