@@ -78,9 +78,89 @@ void Framebuffer::draw_rectangle_memset(uint16_t y, uint16_t height, uint16_t x,
 	size_t line_len = width * sizeof(uint16_t);
 	uint16_t *dest = line + DISPLAY_WIDTH;
 	size_t end_raw_y = y + height;
-	for (size_t i = y; i < end_raw_y; i++) {
+	for (size_t i = 1; i < end_raw_y; i++) {
 		memcpy(dest, line, line_len);
 		dest += DISPLAY_WIDTH;
+	}
+}
+
+void Framebuffer::draw_sprite(uint16_t y, uint16_t height, uint16_t x, uint16_t width, const uint16_t* sprite) {
+
+	if(y > SCREEN_HEIGHT) {
+		printf("[ERROR] starting raw out of bound");
+		return;
+	}
+	if(height > SCREEN_HEIGHT - y) {
+		printf("[ERROR] number of raws out of bound");
+		return;
+	}
+
+	size_t end_y = y + height;
+	for (size_t i = y; i < end_y; i++)
+	{
+		for (size_t j = 0; j < width; j++)
+		{
+			if (sprite[(i - y) * width + j] == 0x1FF8) continue;
+			back_buffer[i * DISPLAY_WIDTH + x + j ] = sprite[(i - y) * width + j];
+			// uint16_t pixel = sprite[(i - y) * width + j];
+			// if (pixel == 0x1FF8) continue;  // Skip transparency
+			// back_buffer[i * DISPLAY_WIDTH + x + j] = (pixel << 8) | (pixel >> 8);
+		}
+	}
+}
+
+void Framebuffer::draw_sprite_alpha(uint16_t y, uint16_t height, uint16_t x, uint16_t width, const SpritePixel* sprite) {
+
+	if(y > SCREEN_HEIGHT) {
+		printf("[ERROR] starting raw out of bound");
+		return;
+	}
+	if(height > SCREEN_HEIGHT - y) {
+		printf("[ERROR] number of raws out of bound");
+		return;
+	}
+
+	size_t end_y = y + height;
+	for (size_t i = y; i < end_y; i++)
+	{
+		for (size_t j = 0; j < width; j++)
+		{
+			const SpritePixel& pixel = sprite[(i - y) * width + j];
+
+			// Skip near-transparent pixels
+			if (pixel.alpha < 10) continue;
+
+			size_t buffer_index = i * DISPLAY_WIDTH + x + j;
+
+			// Full opaque - just write directly (with byte swap)
+			if (pixel.alpha == 255) {
+				back_buffer[buffer_index] = (pixel.color << 8) | (pixel.color >> 8);
+				continue;
+			}
+
+			// Alpha blending required
+			uint16_t bg_swapped = back_buffer[buffer_index];
+			uint16_t bg = (bg_swapped << 8) | (bg_swapped >> 8);  // Un-swap background
+
+			// Extract RGB components (sprite and background)
+			uint8_t sr = (pixel.color >> 11) & 0x1F;
+			uint8_t sg = (pixel.color >> 5) & 0x3F;
+			uint8_t sb = pixel.color & 0x1F;
+
+			uint8_t br = (bg >> 11) & 0x1F;
+			uint8_t bg_g = (bg >> 5) & 0x3F;
+			uint8_t bb = bg & 0x1F;
+
+			// Blend: result = (sprite * alpha + bg * (255 - alpha)) / 255
+			uint8_t inv_alpha = 255 - pixel.alpha;
+			uint8_t r = (sr * pixel.alpha + br * inv_alpha) / 255;
+			uint8_t g = (sg * pixel.alpha + bg_g * inv_alpha) / 255;
+			uint8_t b = (sb * pixel.alpha + bb * inv_alpha) / 255;
+
+			// Pack to RGB565 and swap bytes for display
+			uint16_t blended = (r << 11) | (g << 5) | b;
+			back_buffer[buffer_index] = (blended << 8) | (blended >> 8);
+		}
 	}
 }
 

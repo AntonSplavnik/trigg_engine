@@ -5,10 +5,14 @@
 #include "stdlib.h"
 #include "random"
 #include <math.h>
+#include <fstream>
+#include <iostream>
 
 #include "drivers/display.h"
 #include "framebuffer.h"
 #include "buttons.h"
+#include "assets/skeleton.h"
+#include "assets/skeleton_alpha.h"
 
 using namespace Framebuffer;
 using namespace Buttons;
@@ -269,16 +273,67 @@ void movement_tracking_test_polac() {
 	}
 }
 
-void sprite_test() {
+struct Rectangel {
+	uint16_t y;
+	uint16_t height;
+	uint16_t x;
+	uint16_t width;
+};
 
-	// open file tith ifstream constructor late can read all files in directory.
-	// allocate memory for file len
+void movement_tracking_test_sprite() {
+
+	Rectangle sprite_coord = {128/2 - 25/2, skeleton_alpha_height, 160/2 - 25/2, skeleton_alpha_width};
+	fill_with_color(COLORS[3].value);
+	draw_sprite_alpha(128/2 - 25/2, skeleton_alpha_height, 160/2 - 25/2, skeleton_alpha_width, skeleton_alpha_data);
+	swap_buffers();
+	send_to_display();
+
+	ButtonState buttons;
+	while (true)
+	{
+		buttons = button_polling();
+		if(buttons.a || buttons.d || buttons.i || buttons.j || buttons.k || buttons.l || buttons.s || buttons.w) {
+			sleep_ms(1);
+			fill_with_color(COLORS[3].value);
+			performe_button_action(buttons, sprite_coord);
+			draw_sprite_alpha(sprite_coord.y, sprite_coord.height, sprite_coord.x, sprite_coord.width, skeleton_alpha_data);
+			fps_counter();
+			swap_buffers();
+			send_to_display();
+		}
+	}
+}
+
+void sprite_test() {
+	// sprite is converter to bite date with correct collor for transperant color and swapped endiannes saved on sd card
+	// open file with ifstream constructor late can read all files in directory.
+	// allocate memory for file len (dimentions * color size(16bit))
 	// read file to the pointer
-	// parse file ? or rad line by line and parse during this process. probably whole file parsing is faster
-	// save again?
 	// draw sprite in buffer
 	// swap buffers
 	// send to display
+
+	// std::ifstream file("/assets/skeleton.sprite", std::ios::binary);
+	// if(!file.is_open()) {
+	// 	printf("Error during file openging");
+	// 	return;
+	// }
+
+	// size_t size = 59*43*sizeof(uint16_t);
+	// uint16_t *sprite = (uint16_t*)malloc(size);
+	// if(!sprite) {
+	// 	printf("Allocation error");
+	// 	return;
+	// }
+
+	// file.read((char*)sprite, size);
+	// file.close();
+
+	fill_with_color(COLORS[3].value);
+	// draw_sprite(128/2 - 25/2, 43, 160/2 - 25/2, 59, skeleton_data);
+	draw_sprite_alpha(128/2 - 25/2, skeleton_alpha_height, 160/2 - 25/2, skeleton_alpha_width, skeleton_alpha_data);
+	swap_buffers();
+	send_to_display();
 }
 
 int main(){
@@ -295,7 +350,9 @@ int main(){
 	// random_pixels_test();
 	// line_test();
 	// rectangle_test();
-	movement_tracking_test_polac();
+	// movement_tracking_test_polac();
+	// sprite_test();
+	movement_tracking_test_sprite();
 	blik();
 
 	return 0;
