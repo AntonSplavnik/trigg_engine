@@ -13,6 +13,7 @@
 #include "buttons.h"
 #include "assets/skeleton_alpha.h"
 #include "assets/wizard.h"
+#include "assets/wizard2.h"
 
 using namespace Framebuffer;
 using namespace Buttons;
@@ -131,6 +132,7 @@ static const NamedColor COLORS[] = {
 	{"BLUE",    0x001F},
 	{"WHITE",   0xFFFF},
 	{"BLACK",   0x0000},
+	{"GREAY",   0x8410},
 	{"YELLOW",  0xFFE0},
 	{"CYAN",    0x07FF},
 	{"MAGENTA", 0xF81F}
@@ -298,9 +300,14 @@ void movement_tracking_test_sprite_skeleton() {
 }
 void movement_tracking_test_sprite_wizard() {
 
-	Rectangle sprite_coord = {128/2 - wizard_height/2, wizard_height, 160/2 - wizard_width/2, wizard_width};
-	fill_with_color(COLORS[3].value);
+	Rectangle wizard = {128/2 - wizard_height/2, wizard_height, 160/2 - wizard_width/2, wizard_width};
+	Rectangle wizard2 = {128/2 - wizard2_height/2, wizard2_height, 160/2 - wizard2_width/2, wizard2_width};
+
+	fill_with_color(COLORS[4].value);
+
+	draw_sprite_alpha(2, wizard2_height, 2, wizard2_width, wizard2_data);
 	draw_sprite_alpha(128/2 - wizard_height/2, wizard_height, 160/2 - wizard_width/2, wizard_width, wizard_data);
+
 	swap_buffers();
 	send_to_display();
 
@@ -310,9 +317,10 @@ void movement_tracking_test_sprite_wizard() {
 		buttons = button_polling();
 		if(buttons.a || buttons.d || buttons.i || buttons.j || buttons.k || buttons.l || buttons.s || buttons.w) {
 			sleep_ms(1);
-			fill_with_color(COLORS[3].value);
-			performe_button_action(buttons, sprite_coord);
-			draw_sprite_alpha(sprite_coord.y, sprite_coord.height, sprite_coord.x, sprite_coord.width, wizard_data);
+			fill_with_color(COLORS[4].value);
+			performe_button_action(buttons, wizard);
+			draw_sprite_alpha(2, wizard2_height, 2, wizard2_width, wizard2_data);
+			draw_sprite_alpha(wizard.y, wizard.height, wizard.x, wizard.width, wizard_data);
 			fps_counter();
 			swap_buffers();
 			send_to_display();
