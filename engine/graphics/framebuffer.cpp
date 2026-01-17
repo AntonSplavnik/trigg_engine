@@ -1,3 +1,4 @@
+
 #include "pico/stdlib.h"
 #include "stdio.h"
 #include "cstring"
@@ -179,6 +180,52 @@ void Framebuffer::draw_sprite_alpha(uint16_t y, uint16_t height, uint16_t x, uin
 			back_buffer[buffer_index] = (r << 11) | (g << 5) | b;
 		}
 	}
+}
+
+void Framebuffer::draw_tile_32x32() {
+
+}
+
+void Framebuffer::draw_line_bresenham(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
+
+	if (x0 >= DISPLAY_WIDTH || x1 >= DISPLAY_WIDTH ||
+	y0 >= DISPLAY_HEIGHT || y1 >= DISPLAY_HEIGHT) return;
+
+	uint16_t dx = abs(x1 - x0);
+	uint16_t dy = abs(y1 - y0);
+
+	int sx = (x0 < x1) ? 1 : -1;
+	int sy = (y0 < y1) ? 1 : -1;
+
+
+
+	if (dx >= dy) {
+		// Shallow: x is fast axis
+		int y = y0;
+		int d = 2*dy - dx;
+		for(int x = x0; x != x1; x += sx) {
+			back_buffer[y * DISPLAY_WIDTH + x] = color;
+			if(d > 0) {
+				y += sy;
+				d -= 2*dx;
+			}
+			d += 2*dy;
+		}
+	} else {
+		// Steep: y is fast axis
+		int x = x0;
+		int d = 2*dx - dy;
+		for(int y = y0; y != y1; y += sy)
+		{
+			back_buffer[y * DISPLAY_WIDTH + x] = color;
+			if(d > 0) {
+				x += sx;
+				d -= 2*dy;
+			}
+			d += 2*dx;
+		}
+	}
+	back_buffer[y1 * DISPLAY_WIDTH + x1] = color;
 }
 
 void color_test_nobuffer() {

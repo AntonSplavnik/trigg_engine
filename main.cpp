@@ -127,15 +127,15 @@ struct NamedColor {
 };
 
 static const NamedColor COLORS[] = {
-	{"RED",     0xF800},
-	{"GREEN",   0x07E0},
-	{"BLUE",    0x001F},
-	{"WHITE",   0xFFFF},
-	{"BLACK",   0x0000},
-	{"GREAY",   0x8410},
-	{"YELLOW",  0xFFE0},
-	{"CYAN",    0x07FF},
-	{"MAGENTA", 0xF81F}
+	{"RED",     0xF800}, // 0
+	{"GREEN",   0x07E0}, // 1
+	{"BLUE",    0x001F}, // 2
+	{"WHITE",   0xFFFF}, // 3
+	{"BLACK",   0x0000}, // 4
+	{"GREAY",   0x8410}, // 5
+	{"YELLOW",  0xFFE0}, // 6
+	{"CYAN",    0x07FF}, // 7
+	{"MAGENTA", 0xF81F}  // 8
 };
 
 void color_test() {
@@ -370,6 +370,19 @@ void sprite_test() {
 	send_to_display();
 }
 
+void bresenham_test() {
+
+	fill_with_color(COLORS[4].value);
+	draw_line_bresenham(0, 0, 159, 127, COLORS[6].value);
+	draw_line_bresenham(159/2, 0, 159/2, 127, COLORS[6].value);
+	draw_line_bresenham(0, 127/2, 159, 127/2, COLORS[6].value);
+	draw_line_bresenham(159, 0, 0, 127, COLORS[6].value);
+
+
+	swap_buffers();
+	send_to_display();
+}
+
 int main(){
 
 	stdio_init_all();
@@ -386,7 +399,9 @@ int main(){
 	// rectangle_test();
 	// movement_tracking_test_polac();
 	// sprite_test();
-	movement_tracking_test_sprite_wizard();
+	// movement_tracking_test_sprite_wizard();
+	bresenham_test();
+
 	blik();
 
 	return 0;
