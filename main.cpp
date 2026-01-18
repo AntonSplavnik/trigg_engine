@@ -378,6 +378,15 @@ void bresenham_test() {
 	draw_line_bresenham(0, 127/2, 159, 127/2, COLORS[6].value);
 	draw_line_bresenham(159, 0, 0, 127, COLORS[6].value);
 
+	swap_buffers();
+	send_to_display();
+}
+
+void diamond_outline_test() {
+
+	fill_with_color(COLORS[4].value);
+	draw_diamond_outline(159/2, 127/2, 32, 16, COLORS[6].value);
+	draw_diamond_outline(159/2, 127/2, 32, 16, COLORS[6].value);
 
 	swap_buffers();
 	send_to_display();
@@ -400,7 +409,8 @@ int main(){
 	// movement_tracking_test_polac();
 	// sprite_test();
 	// movement_tracking_test_sprite_wizard();
-	bresenham_test();
+	// bresenham_test();
+	diamond_outline_test();
 
 	blik();
 

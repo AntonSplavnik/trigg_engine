@@ -21,6 +21,7 @@ This document records major architectural and design decisions made during the d
 4. [Isometric Rendering Approach](#4-isometric-rendering-approach)
 5. [Memory Allocation Strategy](#5-memory-allocation-strategy)
 6. [Endianness: Little-Endian Native with Display-Time Conversion](#6-endianness-little-endian-native-with-display-time-conversion)
+7. [Hardware Platform Selection](#7-hardware-platform-selection)
 
 ---
 
@@ -741,6 +742,376 @@ rgb565 = struct.unpack('<H', data[offset:offset+2])[0]  # '<' = little-endian
 - `Docs/hardware/endianness.md`: Detailed endianness explanation
 - `engine/graphics/framebuffer.cpp`: Implementation
 - `tools/sprite_to_cpp_alpha.py`: Asset conversion
+
+---
+
+## 7. Hardware Platform Selection
+
+**Status**: Active
+**Date**: 2026-01-18
+
+### Decision
+
+Select **STM32H743VIT6** as the primary microcontroller and **ST7796S 4" IPS display with FT6336U capacitive touch** as the display system for the upgraded game console.
+
+**Selected Hardware:**
+- **MCU**: STM32H743VIT6 (480 MHz Cortex-M7, 1 MB RAM, FPU, DMA2D)
+- **Display**: ST7796S 4" IPS (480×320, SPI interface)
+- **Touch**: FT6336U capacitive touch (I2C interface)
+- **Input**: Joystick + button kit (analog + digital GPIO)
+
+### Context
+
+The project requires hardware capable of running two game engines:
+1. **Isometric engine** (Diablo 2-style) - sprite-heavy, alpha blending
+2. **Raycaster engine** (Doom-style) - floating-point math intensive
+
+Original hardware (Raspberry Pi Pico + ST7735 128×160) is insufficient for the expanded scope. Need to select hardware that can:
+- Support 4" display with double buffering (614 KB framebuffer)
+- Perform fast floating-point math for raycasting
+- Accelerate 2D graphics operations (sprite blending)
+- Handle game logic at 60 FPS
+
+### Alternatives Considered
+
+#### Microcontroller Options
+
+##### Option A: STM32H743VIT6 (Chosen)
+
+| Spec | Value |
+|------|-------|
+| CPU | ARM Cortex-M7 @ 480 MHz |
+| RAM | 1 MB |
+| Flash | 2 MB internal + 8 MB QSPI |
+| FPU | Full hardware floating-point |
+| DMA2D | Yes (2D graphics acceleration) |
+| DSP | SIMD instructions |
+
+**Pros:**
+- ✅ Fastest single-core performance (480 MHz × 2.14 IPC)
+- ✅ Hardware FPU for raycasting (sin/cos/tan in ~15 cycles vs ~200 software)
+- ✅ DMA2D accelerates sprite blending in hardware
+- ✅ 1 MB RAM fits 4" display with double buffering
+- ✅ Extensive documentation and HAL libraries
+- ✅ Professional-grade debugging (JTAG/SWD)
+
+**Cons:**
+- ❌ Single core (no parallel processing)
+- ❌ No built-in WiFi (no multiplayer without external module)
+- ❌ Higher complexity than Pico
+- ❌ More expensive (~$15-20)
+
+##### Option B: ESP32-S3 N16R8
+
+| Spec | Value |
+|------|-------|
+| CPU | Dual Xtensa LX7 @ 240 MHz |
+| RAM | 512 KB |
+| Flash | 16 MB |
+| FPU | Basic (no hardware trig) |
+| SIMD | PIE (8/16-bit vector operations) |
+| WiFi | Yes (multiplayer potential) |
+
+**Pros:**
+- ✅ Dual cores for parallel processing
+- ✅ PIE SIMD for 8-bit operations (potential sprite blending acceleration)
+- ✅ Built-in WiFi/Bluetooth (multiplayer ready)
+- ✅ Good community support
+- ✅ Cheaper (~$8-10)
+
+**Cons:**
+- ❌ 512 KB RAM insufficient for 4" double buffering (needs 614 KB)
+- ❌ No hardware FPU for floating-point (raycasting slower)
+- ❌ Lower single-thread performance (240 MHz × 1.0 IPC)
+- ❌ PIE designed for AI/DSP, not graphics
+- ❌ No DMA2D equivalent
+
+##### Option C: Raspberry Pi Pico 2 (RP2350)
+
+| Spec | Value |
+|------|-------|
+| CPU | Dual Cortex-M33 @ 150 MHz |
+| RAM | 520 KB |
+| FPU | Hardware single-precision |
+| Price | ~$5 |
+
+**Pros:**
+- ✅ Pin-compatible with original Pico
+- ✅ Hardware FPU
+- ✅ Cheapest option
+- ✅ Excellent documentation
+
+**Cons:**
+- ❌ 520 KB RAM tight for 4" double buffering
+- ❌ Slowest CPU (150 MHz)
+- ❌ No DMA2D
+
+##### Option D: Compute Module (RPi CM4)
+
+| Spec | Value |
+|------|-------|
+| CPU | Quad Cortex-A72 @ 1.5 GHz |
+| RAM | 1-8 GB |
+| GPU | VideoCore VI (OpenGL ES) |
+
+**Pros:**
+- ✅ Most powerful option
+- ✅ Full GPU with OpenGL ES
+- ✅ Can run Linux + SDL2
+- ✅ True 3D graphics possible
+
+**Cons:**
+- ❌ Overkill for 2D retro games
+- ❌ 10-30 second boot time (unless bare metal)
+- ❌ Higher power consumption (2-5W vs 0.5W)
+- ❌ Bare metal GPU programming poorly documented
+- ❌ More expensive ($40-80)
+- ❌ Would require complete engine rewrite
+
+#### Display Options
+
+##### Option A: ST7796S 4" IPS (Chosen)
+
+| Spec | Value |
+|------|-------|
+| Resolution | 480×320 |
+| Size | 4.0" diagonal |
+| PPI | ~144 (similar to PSP) |
+| Interface | 4-line SPI |
+| Color Depth | 262K (18-bit) |
+| SPI Speed | Datasheet: 15 MHz, Practical: 40-80 MHz |
+
+**Pros:**
+- ✅ Confirmed chip (not mislabeled)
+- ✅ Best overclock headroom (80 MHz tested)
+- ✅ IPS panel (good viewing angles)
+- ✅ SPI bus can share with SD card (MISO tristates)
+- ✅ Native RGB565 support
+
+**Cons:**
+- ⚠️ 262K colors (not 16.7M) - acceptable for RGB565
+- ⚠️ Datasheet speed conservative (15 MHz)
+
+##### Option B: ILI9488
+
+| Spec | Value |
+|------|-------|
+| Resolution | 480×320 |
+| Color Depth | 16.7M (24-bit) |
+| SPI Speed | Up to 20 MHz |
+
+**Pros:**
+- ✅ True 24-bit color
+
+**Cons:**
+- ❌ **MISO doesn't tristate** - cannot share SPI bus with SD card
+- ❌ Slower SPI (20 MHz practical max)
+- ❌ Converts RGB565 to 18-bit internally (overhead)
+
+##### Option C: ILI9486
+
+| Spec | Value |
+|------|-------|
+| Resolution | 480×320 |
+| SPI Speed | Up to 20 MHz, ~32 MHz practical |
+
+**Pros:**
+- ✅ Budget option
+- ✅ Similar to ST7796S
+
+**Cons:**
+- ⚠️ Limited overclock (32 MHz max)
+- ⚠️ Needs diode fix for SPI bus sharing
+
+#### Touch Screen Options
+
+##### Option A: FT6336U Capacitive (Chosen)
+
+| Spec | Value |
+|------|-------|
+| Type | Capacitive |
+| Interface | I2C |
+| Feel | Finger-friendly, responsive |
+
+**Pros:**
+- ✅ **I2C interface** - completely separate from SPI bus
+- ✅ No SPI bus conflicts with display or SD card
+- ✅ Better touch feel than resistive
+- ✅ No stylus required
+
+**Cons:**
+- ⚠️ Slightly more expensive
+
+##### Option B: XPT2046 Resistive
+
+| Spec | Value |
+|------|-------|
+| Type | Resistive |
+| Interface | SPI |
+
+**Pros:**
+- ✅ Cheaper
+- ✅ Works with stylus
+
+**Cons:**
+- ❌ SPI interface adds to bus contention
+- ❌ Worse touch feel
+- ❌ Requires pressure to register
+
+### Key Hardware Concepts
+
+#### FPU (Floating Point Unit)
+
+Hardware that performs decimal math operations directly:
+
+| Operation | Without FPU | With FPU |
+|-----------|-------------|----------|
+| Multiply | ~50 cycles | ~1 cycle |
+| sin(x) | ~200 cycles | ~15 cycles |
+| sqrt(x) | ~100 cycles | ~14 cycles |
+
+**Impact on raycasting**: Each frame casts hundreds of rays, each requiring sin/cos/tan. FPU provides 10-50× speedup for raycasting engine.
+
+#### DMA (Direct Memory Access)
+
+Hardware that transfers data without CPU involvement:
+
+```
+Without DMA:
+CPU: [copy byte 1][copy byte 2]...[copy byte 307,200]
+     └─────────── CPU blocked for 5-8ms ───────────┘
+
+With DMA:
+CPU: [start transfer] → [free for game logic]
+DMA: [transfers 307,200 bytes in background]
+```
+
+**Impact**: CPU can calculate next frame while current frame transfers to display.
+
+#### DMA2D (STM32 Chrom-ART Accelerator)
+
+Specialized DMA for 2D graphics operations:
+
+| Operation | CPU Software | DMA2D Hardware |
+|-----------|--------------|----------------|
+| Fill rectangle | CPU calculates each pixel | Hardware fills automatically |
+| Copy sprite | CPU copies each pixel | Hardware block transfer |
+| Alpha blend | CPU: 13 ops per pixel | Hardware: automatic |
+| Color convert | CPU converts each pixel | Hardware converts in transfer |
+
+**Impact**: Sprite blending (critical for isometric engine) becomes nearly free.
+
+### Trade-offs
+
+| Aspect | STM32H743 | ESP32-S3 | Pico 2 | Compute Module |
+|--------|-----------|----------|--------|----------------|
+| 4" display double buffer | ✅ Easy | ❌ No RAM | ⚠️ Tight | ✅ Easy |
+| Raycasting (FPU) | ✅ Fast | ❌ Slow | ✅ OK | ✅ Fast |
+| Sprite blending | ✅ DMA2D | ⚠️ PIE helps | ❌ Software | ✅ GPU |
+| WiFi multiplayer | ❌ No | ✅ Yes | ❌ No | ✅ Yes |
+| Boot time | ✅ Instant | ✅ Instant | ✅ Instant | ❌ 10-30s |
+| Power consumption | ✅ ~0.5W | ✅ ~0.5W | ✅ ~0.3W | ❌ 2-5W |
+| Bare metal difficulty | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ |
+| Cost | ~$15-20 | ~$8-10 | ~$5 | ~$40-80 |
+
+### Rationale
+
+**Why STM32H743:**
+
+1. **RAM requirement is non-negotiable**: 4" display needs 614 KB for double buffering. Only STM32H743 (1 MB) and Compute Module have sufficient RAM. ESP32-S3 (512 KB) and Pico 2 (520 KB) cannot fit double-buffered framebuffer.
+
+2. **FPU critical for raycasting**: Doom-style raycaster uses sin/cos/tan for every ray. Hardware FPU provides 10-50× speedup over software emulation.
+
+3. **DMA2D accelerates isometric engine**: Alpha-blended sprites are the core of isometric rendering. DMA2D handles blending in hardware, freeing CPU for game logic.
+
+4. **Compute Module is overkill**: Original Doom ran on 66 MHz 486. Original Diablo ran on 60 MHz Pentium. STM32H743 at 480 MHz with FPU is more than sufficient. Compute Module adds boot time, power consumption, and complexity without proportional benefit.
+
+5. **ESP32-S3 PIE misconception**: PIE (Processor Instruction Extensions) is designed for AI/DSP workloads (8-bit multiply-accumulate), not graphics rendering. It cannot compensate for lack of FPU and insufficient RAM.
+
+**Why ST7796S display:**
+
+1. **SPI bus sharing**: Unlike ILI9488, ST7796S MISO line tristates properly, allowing shared SPI bus with SD card.
+
+2. **Overclock headroom**: Practical speeds of 40-80 MHz vs 20 MHz for ILI9488 means faster frame transfers.
+
+3. **Confirmed availability**: Many "ST7796S" listings are actually ILI9488. Selected verified source (MSP4031 SKU).
+
+**Why FT6336U capacitive touch:**
+
+1. **I2C interface**: Completely separate from SPI bus. No contention with display or SD card.
+
+2. **Inventory system**: Touch is valuable for inventory management in RPG-style games (tap to select, drag to move items).
+
+### Performance Comparison
+
+Reference: Historical game hardware
+
+| System | CPU | RAM | Our Target Games |
+|--------|-----|-----|------------------|
+| Doom (1993) | 486 @ 66 MHz | 8 MB | ✅ Raycaster |
+| Diablo (1996) | Pentium @ 60 MHz | 8 MB | ✅ Isometric |
+| PSP (2004) | MIPS @ 333 MHz | 32 MB | Reference handheld |
+| **STM32H743** | **Cortex-M7 @ 480 MHz** | **1 MB** | Both engines |
+
+STM32H743 has more processing power than original Doom/Diablo hardware. Limited RAM (1 MB vs 8+ MB) is managed through:
+- Streaming assets from SD card
+- Efficient sprite caching
+- Level-based loading
+
+### Memory Budget (480×320 display)
+
+```
+STM32H743 RAM: 1 MB (1,048,576 bytes)
+├── Framebuffer 0:     307 KB (480×320×2 RGB565)
+├── Framebuffer 1:     307 KB (double buffer)
+├── Sprite cache:      200 KB
+├── Tile cache:        100 KB
+├── Game state:         50 KB
+├── Stack/heap:         36 KB
+└── Reserve:            48 KB
+────────────────────────────
+Total:               1,048 KB ✅ Fits
+```
+
+### Selected Components
+
+| Component | Model | Interface | Price |
+|-----------|-------|-----------|-------|
+| MCU | STM32H743VIT6 dev board | - | ~$20 |
+| Display | ST7796S 4" IPS (MSP4031) | SPI | ~$15 |
+| Touch | FT6336U (included with display) | I2C | - |
+| Input | Joystick + button shield | Analog + GPIO | ~$5 |
+| Storage | MicroSD (on dev board) | SPI | - |
+
+### Implementation Notes
+
+**Pin allocation (STM32H743):**
+```
+SPI1 or SPI2: ST7796S display (CS, DC, RESET, MOSI, SCK)
+SPI3: SD Card (CS, MOSI, MISO, SCK)
+I2C1: FT6336U touch (SDA, SCL, INT)
+ADC: Joystick X/Y axes
+GPIO: Buttons (directly to pins)
+PWM: Backlight control
+```
+
+**Bus separation:**
+- Display and SD card can share SPI bus (ST7796S tristates properly)
+- Touch on separate I2C bus (no conflicts)
+- DMA channels for both SPI transfers
+
+### Future Considerations
+
+- **WiFi module**: Can add ESP8266/ESP32 as co-processor for multiplayer via UART
+- **Audio**: I2S DAC (MAX98357A) for sound effects
+- **Battery**: LiPo + TP4056 charging circuit for portable use
+- **Dual-core upgrade**: STM32H745/747 available if parallel processing needed
+
+### Related Documentation
+
+- `Docs/hardware/HARDWARE_UPGRADES.md`: Physical upgrade plan
+- `Docs/hardware/spi.md`: SPI bus configuration
+- `Docs/hardware/display_pins.md`: Pin assignments
 
 ---
 

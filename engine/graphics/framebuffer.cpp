@@ -9,12 +9,12 @@
 
 // Endian helpers
 
-void swap_endian(uint16_t* front_buffer) {
+void swap_endian(uint16_t* buffer) {
 
 	size_t number_of_pixels = DISPLAY_HEIGHT * DISPLAY_WIDTH;
 	for (size_t i = 0; i < number_of_pixels; i++)
 	{
-		front_buffer[i] = __builtin_bswap16(front_buffer[i]);
+		buffer[i] = __builtin_bswap16(buffer[i]);
 	}
 }
 
@@ -109,21 +109,16 @@ void Framebuffer::draw_sprite(uint16_t y, uint16_t height, uint16_t x, uint16_t 
 		return;
 	}
 
-	size_t end_y = y + height;
-	for (size_t i = y; i < end_y; i++)
+	for (size_t i = y; i < height; i++)
 	{
 		for (size_t j = 0; j < width; j++)
 		{
 			// if (sprite[(i - y) * width + j] == 0x1FF8) continue;
 			// back_buffer[i * DISPLAY_WIDTH + x + j ] = sprite[(i - y) * width + j];
 
-			uint16_t pixel = sprite[(i - y) * width + j];
+			uint16_t pixel = sprite[i * width + j];
 			if (pixel == 0x1FF8) continue;  // Skip transparency
-			back_buffer[i * DISPLAY_WIDTH + x + j] = pixel;
-
-			// uint16_t pixel = sprite[(i - y) * width + j];
-			// if (pixel == 0x1FF8) continue;  // Skip transparency
-			// back_buffer[i * DISPLAY_WIDTH + x + j] = (pixel << 8) | (pixel >> 8);
+			back_buffer[(y + i) * DISPLAY_WIDTH + x + j] = pixel;
 		}
 	}
 }
@@ -182,12 +177,7 @@ void Framebuffer::draw_sprite_alpha(uint16_t y, uint16_t height, uint16_t x, uin
 	}
 }
 
-void Framebuffer::draw_tile_32x32() {
-
-}
-
 void Framebuffer::draw_line_bresenham(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
-
 	if (x0 >= DISPLAY_WIDTH || x1 >= DISPLAY_WIDTH ||
 	y0 >= DISPLAY_HEIGHT || y1 >= DISPLAY_HEIGHT) return;
 
@@ -196,8 +186,6 @@ void Framebuffer::draw_line_bresenham(uint16_t x0, uint16_t y0, uint16_t x1, uin
 
 	int sx = (x0 < x1) ? 1 : -1;
 	int sy = (y0 < y1) ? 1 : -1;
-
-
 
 	if (dx >= dy) {
 		// Shallow: x is fast axis
@@ -226,6 +214,14 @@ void Framebuffer::draw_line_bresenham(uint16_t x0, uint16_t y0, uint16_t x1, uin
 		}
 	}
 	back_buffer[y1 * DISPLAY_WIDTH + x1] = color;
+}
+
+void Framebuffer::draw_diamond_outline(int center_x, int center_y, int width, int height, uint16_t color) {
+
+	draw_line_bresenham(center_x - width, center_y, center_x, center_y + height, color);
+	draw_line_bresenham(center_x - width, center_y, center_x, center_y - height, color);
+	draw_line_bresenham(center_x + width, center_y, center_x, center_y + height, color);
+	draw_line_bresenham(center_x + width, center_y, center_x, center_y - height, color);
 }
 
 void color_test_nobuffer() {

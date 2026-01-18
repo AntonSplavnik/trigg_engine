@@ -12,23 +12,51 @@ This document outlines potential hardware upgrades for the TriggEngine console t
 - 264KB SRAM
 - 2MB Flash
 
-### Proposed: Raspberry Pi Pico 2 (RP2350) or Better
+### Chosen: STM32H743VIT6
 
-#### Option A: Raspberry Pi Pico 2 (RP2350)
-- Dual-core ARM Cortex-M33 @ 150MHz
-- 520KB SRAM (2x current)
-- 4MB Flash (2x current)
-- Hardware floating-point unit
-- Better performance for graphics operations
-- Pin-compatible with Pico (easy upgrade)
+**Selected for the upgraded console (see DESIGN_DECISIONS.md Section 7 for full rationale)**
 
-#### Option B: ESP32-S3
-- Dual-core Xtensa LX7 @ 240MHz
-- 512KB SRAM
-- WiFi/Bluetooth built-in (multiplayer potential)
-- Better performance for complex games
+| Spec | Value |
+|------|-------|
+| CPU | ARM Cortex-M7 @ 480 MHz |
+| RAM | 1 MB |
+| Flash | 2 MB internal + 8 MB QSPI |
+| FPU | Full hardware floating-point |
+| DMA2D | 2D graphics acceleration (Chrom-ART) |
+| DSP | SIMD instructions |
 
-**Recommendation**: Start with Pico 2 for compatibility, consider ESP32-S3 for future revisions
+**Why STM32H743:**
+- ✅ 1 MB RAM fits 4" display with double buffering (614 KB needed)
+- ✅ Hardware FPU for raycasting engine (10-50× faster than software)
+- ✅ DMA2D accelerates sprite blending in hardware
+- ✅ 480 MHz single-core outperforms dual 240 MHz cores for game loops
+- ✅ Extensive HAL libraries and documentation
+
+**Development Board Specs:**
+- STM32H743VIT6 480MHz, 2048KB ROM, 1MB RAM
+- 8MB SPI Flash, 8MB QSPI Flash (executable)
+- USB-C interface with ESD protection
+- MicroSD card slot (on-board)
+- DCMI camera interface (optional use)
+- 2×22 Pin 2.54mm I/O headers
+
+### Alternatives Considered (Not Chosen)
+
+#### ESP32-S3 N16R8
+- ❌ 512 KB RAM insufficient for 4" double buffering
+- ❌ No hardware FPU for floating-point trig
+- ✅ Has WiFi (can add as co-processor later)
+
+#### Raspberry Pi Pico 2 (RP2350)
+- ❌ 520 KB RAM tight for 4" double buffering
+- ❌ 150 MHz slowest option
+- ✅ Cheapest, good for smaller displays
+
+#### Compute Module (RPi CM4)
+- ❌ Overkill for 2D retro games
+- ❌ 10-30 second boot time
+- ❌ Higher power consumption (2-5W)
+- ✅ Only option for true 3D GPU graphics
 
 ---
 
@@ -39,32 +67,71 @@ This document outlines potential hardware upgrades for the TriggEngine console t
 - 128x160 resolution
 - Standard TN panel
 
-### Proposed: Larger IPS Display
+### Chosen: ST7796S 4" IPS with FT6336U Capacitive Touch
 
-#### Option A: ST7789 240x240 IPS
-- 1.54" or 1.69" IPS display
-- 240x240 resolution (~3.5x more pixels)
-- Better viewing angles
-- Superior color reproduction
-- Same SPI interface (easy integration)
+**Selected display module: MSP4031 (see DESIGN_DECISIONS.md Section 7 for full rationale)**
 
-#### Option B: ST7789 240x320 IPS
-- 2.0" or 2.4" IPS display
-- 240x320 resolution (~4.7x more pixels)
-- Wider aspect ratio for gameplay
-- May require larger form factor
+| Spec | Value |
+|------|-------|
+| Screen Size | 4.0" diagonal |
+| Screen Type | IPS |
+| Resolution | 480×320 pixels |
+| PPI | ~144 (similar to PSP) |
+| Color Depth | 262K (18-bit) |
+| Driver IC | ST7796S |
+| Interface | 4-line SPI |
+| Brightness | 300 cd/m² |
+| Backlight | White LED × 8 |
 
-**Benefits**:
-- Wider viewing angles (IPS technology)
-- Better color accuracy
-- More screen real estate for detailed isometric graphics
-- Higher resolution allows for more detailed sprites
+**Touch Screen Specs:**
 
-**Requirements**:
-- Update SCREEN_WIDTH/SCREEN_HEIGHT constants
-- Larger framebuffer (240×240 = 115KB vs current 40KB)
-- More Flash memory for higher-res assets
-- Pico 2's extra RAM makes this feasible
+| Spec | Value |
+|------|-------|
+| Type | Capacitive |
+| Driver IC | FT6336U |
+| Interface | **I2C** (separate from SPI!) |
+| Resolution | 320×480 |
+
+**Why ST7796S:**
+- ✅ SPI MISO tristates properly (can share bus with SD card)
+- ✅ Best overclock headroom (datasheet: 15 MHz, practical: 40-80 MHz)
+- ✅ IPS panel with good viewing angles
+- ✅ Confirmed chip (not mislabeled like many ILI9488)
+- ✅ Native RGB565 support
+
+**Why FT6336U Capacitive Touch:**
+- ✅ **I2C interface** - completely separate from SPI bus
+- ✅ No bus contention with display or SD card
+- ✅ Better touch feel than resistive (XPT2046)
+- ✅ Essential for inventory management in RPG games
+
+**Physical Dimensions:**
+- Module: 60.88mm × 108.0mm × 14.80mm (with touch)
+- Active Area: 55.68mm × 83.52mm
+- Connector: 14-pin 2.54mm header (jumper wire friendly)
+
+### Display Controller Comparison
+
+| Controller | ST7796S (Chosen) | ILI9488 | ILI9486 |
+|------------|------------------|---------|---------|
+| SPI Speed (datasheet) | 15 MHz | 20 MHz | 20 MHz |
+| SPI Speed (practical) | **40-80 MHz** | 20-40 MHz | 25-32 MHz |
+| Color Depth | 262K | 16.7M | 262K |
+| MISO Tristate | ✅ Yes | ❌ **No** | ⚠️ Needs fix |
+| SD Card Sharing | ✅ Works | ❌ Broken | ⚠️ Possible |
+
+**Critical**: ILI9488 MISO never tristates - cannot share SPI bus with SD card. This was the deciding factor.
+
+### Framebuffer Memory Impact
+
+```
+480×320 × 2 bytes (RGB565) = 307,200 bytes per buffer
+Double buffering = 614,400 bytes (614 KB)
+
+STM32H743 has 1 MB RAM → ✅ Fits with 386 KB spare
+ESP32-S3 has 512 KB RAM → ❌ Cannot fit
+Pico 2 has 520 KB RAM → ❌ Cannot fit
+```
 
 ### 2.1 Understanding Display Resolution & PPI
 
@@ -337,63 +404,98 @@ Proposed (Game Boy Color style - vertical):
 
 ## 8. Implementation Priority
 
-### Phase 1: Essential Upgrades
-1. **Microcontroller**: Upgrade to Pico 2
-2. **Power System**: Li-Po battery + USB-C charging
-3. **Display**: 240x240 ST7789 IPS
-4. **Input**: Hardware debouncing capacitors
+### Phase 1: Core Hardware (Current Focus)
+1. **Microcontroller**: STM32H743VIT6 dev board ✅ Selected
+2. **Display**: ST7796S 4" IPS with FT6336U touch (MSP4031) ✅ Selected
+3. **Input**: Joystick + button kit ✅ Selected
+4. **Connectivity**: Dupont wires 20cm (F-F, M-F) for prototyping
 
-### Phase 2: Ergonomics & Usability
-5. **D-Pad**: Replace discrete buttons
-6. **Start/Select buttons**: Add menu controls
-7. **Form Factor**: Decide orientation (prototype both)
+### Phase 2: Software Adaptation
+5. **Port engine**: Adapt framebuffer code for STM32 HAL
+6. **Display driver**: Write ST7796S driver
+7. **Touch driver**: Write FT6336U I2C driver
+8. **DMA2D integration**: Hardware-accelerated sprite blending
 
-### Phase 3: Enhanced Features
-8. **Audio**: Headphone jack + better speaker
-9. **Battery Monitor**: Add fuel gauge/indicator
-10. **Status LED**: RGB notification LED
+### Phase 3: Ergonomics & Power
+9. **Power System**: Li-Po battery + USB-C charging
+10. **D-Pad**: Replace discrete buttons with proper D-pad
+11. **Form Factor**: Design console layout
 
-### Phase 4: Future Enhancements
-11. **Haptic feedback**: Vibration motor
-12. **MicroSD**: Expandable storage
-13. **Stereo audio**: Dual speakers
-14. **GPIO expansion**: Developer port
+### Phase 4: Polish & Features
+12. **Audio**: I2S DAC (MAX98357A) + headphone jack
+13. **Battery Monitor**: Fuel gauge/indicator
+14. **Custom PCB**: Integrate all components
+15. **Enclosure**: 3D printed or manufactured case
 
 ---
 
 ## 9. Estimated Costs (USD)
 
-| Component | Current | Upgraded | Difference |
-|-----------|---------|----------|------------|
-| MCU | Pico ($4) | Pico 2 ($5) | +$1 |
-| Display | ST7735 ($4) | ST7789 IPS ($8) | +$4 |
-| Battery System | AAA holders ($1) | Li-Po + BMS + USB-C ($8) | +$7 |
-| Input | Buttons ($2) | D-pad + caps + buttons ($5) | +$3 |
-| Audio | Speaker ($1) | Speaker + jack ($3) | +$2 |
-| Misc | - | Status LED, voltage reg ($2) | +$2 |
-| **Total** | **~$12** | **~$31** | **+$19** |
+### Selected Hardware (Phase 1)
 
-*Note: Prices are estimates for hobbyist quantities. Bulk pricing would reduce costs.*
+| Component | Model | Price |
+|-----------|-------|-------|
+| MCU | STM32H743VIT6 dev board | ~$20 |
+| Display | ST7796S 4" IPS + touch (MSP4031) | ~$15 |
+| Input | Joystick + button kit | ~$5 |
+| Wiring | Dupont wires 20cm (assorted) | ~$3 |
+| Breadboards | 2× 830-point (optional) | ~$5 |
+| **Phase 1 Total** | | **~$48** |
+
+### Future Phases
+
+| Component | Model | Price |
+|-----------|-------|-------|
+| Battery | Li-Po 2000mAh + TP4056 + regulator | ~$8 |
+| Audio | MAX98357A I2S DAC + speaker | ~$5 |
+| D-Pad | Mechanical D-pad assembly | ~$3 |
+| Custom PCB | JLCPCB 5-board order | ~$10 |
+| Enclosure | 3D printed or manufactured | ~$15 |
+| **Future Total** | | **~$41** |
+
+### Complete Console Estimate
+
+| Stage | Cost |
+|-------|------|
+| Development prototype | ~$48 |
+| Final console (additional) | ~$41 |
+| **Total project** | **~$89** |
+
+*Note: Prices are estimates for hobbyist quantities from AliExpress/JLCPCB. Prices vary by seller and region.*
 
 ---
 
 ## 10. Software Implications
 
 ### Engine Changes Required
-- [x] Display abstraction already supports resolution changes
-- [ ] Update SCREEN_WIDTH/SCREEN_HEIGHT constants
-- [ ] Scale or redesign assets for higher resolution
-- [ ] Adjust framebuffer allocation (use Pico 2's extra RAM)
-- [ ] Add battery monitoring system
-- [ ] Implement charging status display
-- [ ] Add START/SELECT button handling
-- [ ] D-pad input mapping (if different from discrete buttons)
-- [ ] Low battery warning system
+
+**Platform Migration (Pico → STM32H743):**
+- [ ] Port to STM32 HAL (replace Pico SDK calls)
+- [ ] Update SCREEN_WIDTH=480, SCREEN_HEIGHT=320
+- [ ] Increase framebuffer allocation (307 KB × 2)
+- [ ] Implement DMA-based SPI transfers
+- [ ] Add DMA2D hardware acceleration for sprites
+
+**New Drivers Required:**
+- [ ] ST7796S display driver (SPI, based on existing ST7735)
+- [ ] FT6336U touch driver (I2C, new)
+- [ ] Joystick ADC driver (analog input)
+
+**DMA2D Integration:**
+- [ ] Hardware rectangle fill (clear screen)
+- [ ] Hardware sprite copy (opaque blitting)
+- [ ] Hardware alpha blending (transparent sprites)
+- [ ] Hardware color conversion (if needed)
+
+**Touch/Inventory System:**
+- [ ] Touch event handling (tap, drag)
+- [ ] Inventory UI with touch support
+- [ ] Calibration routine
 
 ### Asset Pipeline
-- [ ] Generate 240x240 optimized sprites
-- [ ] Consider asset compression for larger display
-- [ ] Use Flash more efficiently with higher-res graphics
+- [ ] Update sprite converter for 480×320 target
+- [ ] Consider asset compression (LZ4) for larger sprites
+- [ ] Streaming system for large tilesets from SD card
 
 ---
 
@@ -432,5 +534,5 @@ Proposed (Game Boy Color style - vertical):
 
 ---
 
-**Last Updated**: 2026-01-01
-**Status**: Proposal/Planning Phase
+**Last Updated**: 2026-01-18
+**Status**: Hardware Selected - Ready for Purchase

@@ -27,9 +27,8 @@ namespace Framebuffer {
 	void draw_rectangle_memset(uint16_t start_raw_y, uint16_t number_of_raws_y, uint16_t x, uint16_t line_len, uint16_t color);
 	void draw_sprite(uint16_t start_raw_y, uint16_t number_of_raws_y, uint16_t x, uint16_t line_len, const uint16_t* sprite);
 	void draw_sprite_alpha(uint16_t start_raw_y, uint16_t number_of_raws_y, uint16_t x, uint16_t line_len, const SpritePixel* sprite);
-	void draw_tile_32x32();
 	void draw_line_bresenham(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
-
+	void draw_diamond_outline(int center_x, int center_y, int width, int height, uint16_t color);
 };
 
 
