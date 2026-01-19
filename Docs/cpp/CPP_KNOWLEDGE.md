@@ -6,6 +6,7 @@
 - [Random Number Generation](#random-number-generation)
 - [Volatile Keyword](#volatile-keyword)
 - [Static Keyword](#static-keyword)
+- [Inline Keyword](#inline-keyword)
 
 - [Smart Pointers](#smart-pointers)
 - [Lambda Functions](#lambda-functions)
@@ -426,6 +427,138 @@ int MyClass::shared_var = 0;
 | Class member | ✗ | ✓   | Shared across instances         |
 
 **Key difference**: C++ adds class-level `static` for shared state/behavior.
+
+---
+
+## Inline Keyword
+
+### What inline Does
+
+The `inline` keyword serves two purposes:
+
+**1. Optimization Hint (Original Purpose)**
+Suggests the compiler substitute the function body directly at the call site:
+
+```cpp
+inline int add(int a, int b) { return a + b; }
+
+int result = add(5, 3);  // Compiler may replace with: int result = 5 + 3;
+```
+
+**2. Linker Rule (More Important Today)**
+Allows function definitions in headers without causing linker errors.
+
+---
+
+### The Problem: Multiple Definitions
+
+When you define a function in a header, `#include` copies it into every `.cpp` file:
+
+```cpp
+// math.h
+int32_t to_fixed(int16_t v) { return v << 8; }  // Definition in header
+```
+
+```cpp
+// a.cpp
+#include "math.h"   // to_fixed() copied here
+void foo() { auto x = to_fixed(5); }
+
+// b.cpp
+#include "math.h"   // to_fixed() copied here too
+void bar() { auto y = to_fixed(10); }
+```
+
+**After preprocessing**, both files contain the full function definition:
+
+```cpp
+// a.cpp (after preprocessor)
+int32_t to_fixed(int16_t v) { return v << 8; }  // ← from math.h
+void foo() { auto x = to_fixed(5); }
+
+// b.cpp (after preprocessor)
+int32_t to_fixed(int16_t v) { return v << 8; }  // ← from math.h
+void bar() { auto y = to_fixed(10); }
+```
+
+**Linker error:**
+```
+error: multiple definition of 'to_fixed'
+a.o: first defined here
+b.o: duplicate definition
+```
+
+---
+
+### The Solution: inline
+
+```cpp
+// math.h
+inline int32_t to_fixed(int16_t v) { return v << 8; }  // ✅ Works
+```
+
+The `inline` keyword tells the linker: "These duplicates came from the same header — merge them into one."
+
+---
+
+### When to Use inline
+
+**Function body in header → use `inline`**
+```cpp
+// utils.h
+inline int square(int x) { return x * x; }  // ✅
+```
+
+**Function body in .cpp → no `inline` needed**
+```cpp
+// utils.h
+int square(int x);  // Declaration only
+
+// utils.cpp
+int square(int x) { return x * x; }  // ✅ No inline needed
+```
+
+---
+
+### inline vs Actual Inlining
+
+**Important distinction:**
+
+| Concept | Meaning |
+|---------|---------|
+| `inline` keyword | Allows header definitions, hints at optimization |
+| Actual inlining | Compiler replacing call with function body |
+
+Modern compilers inline small functions **automatically** based on:
+- Function size
+- Call frequency
+- Optimization level (`-O2`, `-O3`)
+
+The keyword doesn't guarantee inlining — the compiler decides. But you still need `inline` for the linker rule when defining in headers.
+
+---
+
+### Quick Reference
+
+```cpp
+// ❌ Linker error if header included in multiple .cpp files
+int helper(int x) { return x * 2; }
+
+// ✅ Works in header - inline allows multiple definitions
+inline int helper(int x) { return x * 2; }
+
+// ✅ Works - declaration in header, definition in one .cpp
+int helper(int x);  // header
+int helper(int x) { return x * 2; }  // single .cpp file
+```
+
+### Key Takeaways
+
+- `inline` = "Allow this definition in a header" (linker rule)
+- Required when function body is in a header file
+- Does NOT guarantee actual inlining (compiler decides)
+- Best for small utility functions (one-liners, simple math)
+- No runtime overhead — purely a compile/link time concept
 
 ---
 

@@ -23,6 +23,50 @@ Isometric rendering creates a 2.5D perspective where the game world appears thre
 
 ---
 
+## Projection Theory
+
+### Projection vs Rasterization
+
+These are related but distinct concepts:
+
+- **Projection** — Mathematical transformation converting 3D world coordinates into 2D screen coordinates. Answers: "Where on screen does this 3D point appear?"
+
+- **Rasterization** — Converting geometric primitives (lines, triangles) into actual pixels. Answers: "Which pixels need to be filled to draw this shape?"
+
+Projection happens first (3D → 2D coordinates), then rasterization (2D shapes → pixels).
+
+### Parallel Projection
+
+All projection lines are parallel — no convergence to a vanishing point. Objects don't shrink with distance. This is the opposite of perspective projection.
+
+### Axonometric Projections (Subcategory of Parallel)
+
+Show multiple faces of an object at once by viewing from an angle:
+
+| Type | Foreshortening | Angle |
+|------|----------------|-------|
+| **Isometric** | All 3 axes equal | ~30° (true) |
+| **Dimetric** | 2 axes equal, 1 different | Varies |
+| **Trimetric** | All 3 axes different | Varies |
+
+### 2:1 Dimetric Projection (What Games Use)
+
+What game developers call "isometric" is technically **dimetric projection** with a **2:1 pixel ratio**:
+
+- For every 2 horizontal pixels, move 1 vertical pixel
+- Creates clean diagonal lines without anti-aliasing
+- Actual angle: ~26.565° (arctan(0.5)), not true 30°
+- Perfect for pixel art and integer math
+
+This became the standard in classic games (SimCity 2000, Diablo, Fallout, Age of Empires).
+
+**Why 2:1 matters for embedded systems:**
+- No floating point needed
+- Simple bit shifts instead of division
+- Clean pixel-perfect lines
+
+---
+
 ## Diamond-Shaped Tiles
 
 **Standard isometric tile dimensions:** 32×16 pixels

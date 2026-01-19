@@ -14,6 +14,7 @@
 #include "assets/skeleton_alpha.h"
 #include "assets/wizard.h"
 #include "assets/wizard2.h"
+#include "iso_math.h"
 
 using namespace Framebuffer;
 using namespace Buttons;
@@ -390,6 +391,12 @@ void diamond_outline_test() {
 
 	swap_buffers();
 	send_to_display();
+}
+
+void world_to_screen_test() {
+
+	World_space world {};
+
 }
 
 int main(){
