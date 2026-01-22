@@ -144,22 +144,30 @@ bool handle_movement(Entity& rect) {
 	Fixed_q16 speed = 100;
 	Fixed_q16 dt(static_cast<float>(delta_time()));
 	Fixed_q16 movement = speed * dt;
-
 	bool moved = false;
-	if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS && rect.y - movement >= 0) {
+
+	if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS && rect.y > 0) {
 		rect.y -= movement;
+		Fixed_q16 min_y = 0;
+		if(rect.y < min_y) rect.y = min_y;
 		moved = true;
 	}
-	if (glfwGetKey(g_window, GLFW_KEY_A) == GLFW_PRESS && rect.x - movement >= 0) {
+	if (glfwGetKey(g_window, GLFW_KEY_A) == GLFW_PRESS && rect.x > 0) {
 		rect.x -= movement;
+		Fixed_q16 min_x = 0;
+		if(rect.x < min_x) rect.x = min_x;
 		moved = true;
 	}
-	if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS && rect.y + rect.height + movement <= SCREEN_HEIGHT) {
+	if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS && rect.y < DISPLAY_HEIGHT - rect.height) {
 		rect.y += movement;
+		Fixed_q16 max_y = DISPLAY_HEIGHT - rect.height;
+		if(rect.y > max_y) rect.y = max_y;
 		moved = true;
 	}
-	if (glfwGetKey(g_window, GLFW_KEY_D) == GLFW_PRESS && rect.x + rect.width + movement <= SCREEN_WIDTH) {
+	if (glfwGetKey(g_window, GLFW_KEY_D) == GLFW_PRESS && rect.x < DISPLAY_WIDTH - rect.width) {
 		rect.x += movement;
+		Fixed_q16 max_x = DISPLAY_WIDTH - rect.width;
+		if(rect.x > max_x) rect.x = max_x;
 		moved = true;
 	}
 	return moved;
@@ -371,9 +379,9 @@ int main(){
 	// rectangle_test();
 	// movement_tracking_test_polac();
 	// sprite_test();
-	movement_tracking_test_sprite_wizard();
+	// movement_tracking_test_sprite_wizard();
 	// bresenham_line_drawing_test();
-	// diamond_outline_test();
+	diamond_outline_test();
 
 	glfwDestroyWindow(g_window);
 	glfwTerminate();

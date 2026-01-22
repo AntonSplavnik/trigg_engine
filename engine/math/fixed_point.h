@@ -49,6 +49,15 @@ struct Fixed_q16 {
 		return result;
 	}
 
+	bool operator>(const Fixed_q16& other) const {
+		Fixed_q16 result;
+		return (raw > other.raw) ;
+	}
+	bool operator<(const Fixed_q16& other) const {
+		Fixed_q16 result;
+		return (raw < other.raw);
+	}
+
 	bool operator>(const int32_t other) const {
 		Fixed_q16 result;
 		return (raw > to_fixed(other)) ;
@@ -57,6 +66,16 @@ struct Fixed_q16 {
 		Fixed_q16 result;
 		return (raw < to_fixed(other));
 	}
+
+	bool operator>(const uint16_t other) const {
+		Fixed_q16 result;
+		return (raw > to_fixed(static_cast<int32_t>(other))) ;
+	}
+	bool operator<(const uint16_t other) const {
+		Fixed_q16 result;
+		return (raw < to_fixed(static_cast<int32_t>(other)));
+	}
+
 	bool operator>=(const int32_t other) const {
 		Fixed_q16 result;
 		return (raw >= to_fixed(other)) ;
@@ -65,6 +84,7 @@ struct Fixed_q16 {
 		Fixed_q16 result;
 		return (raw <= to_fixed(other));
 	}
+
 	bool operator>=(const int16_t other) const {
 		Fixed_q16 result;
 		return (raw >= to_fixed(other)) ;

@@ -231,10 +231,26 @@ void performe_button_action(ButtonState state, Entity& rect) {
 	Fixed_q16 dt = delta_time();
 	Fixed_q16 movement = speed * dt;
 
-	if(state.w && rect.y.to_int() > 0) rect.y -= movement;
-	if(state.a && rect.x.to_int() > 0) rect.x -= movement;
-	if(state.s && rect.y.to_int() + rect.height < SCREEN_HEIGHT) rect.y += movement;
-	if(state.d && rect.x.to_int() + rect.width < SCREEN_WIDTH) rect.x += movement;
+	if(state.w && rect.y > 0){
+		rect.y -= movement;
+		Fixed_q16 min_y = 0;
+		if(rect.y < min_y) rect.y = min_y;
+	}
+	if(state.a && rect.x > 0) {
+		rect.x -= movement;
+		Fixed_q16 min_x = 0;
+		if(rect.x < min_x) rect.x = min_x;
+	}
+	if(state.s && rect.y + rect.height < DISPLAY_HEIGHT) {
+		rect.y += movement;
+		Fixed_q16 max_y = DISPLAY_HEIGHT - rect.height;
+		if(rect.y > max_y) rect.y = max_y;
+	}
+	if(state.d && rect.x + rect.width < DISPLAY_WIDTH) {
+		rect.x += movement;
+		Fixed_q16 max_x = DISPLAY_WIDTH - rect.width;
+		if(rect.x > max_x) rect.x = max_x;
+	}
 }
 
 void movement_tracking_test_regular() {
