@@ -159,6 +159,60 @@ Example:
 int rounded = (raw + 32768) >> 16;  // 32768 = half of 65536
 ```
 
+### Float to Fixed-Point (Desktop Only)
+
+For desktop builds (e.g., delta time conversion), we need to convert floats to fixed-point.
+
+**Why can't we bit-shift floats?**
+
+Integers and floats have completely different internal representations:
+
+```
+32-bit Integer:
+├──────────── 32 bits: direct binary value ────────────┤
+
+32-bit Float (IEEE 754):
+├─ 1 bit sign ─┤├── 8 bits exponent ──┤├── 23 bits mantissa ──┤
+```
+
+A float encodes: `(-1)^sign × 1.mantissa × 2^(exponent-127)`
+
+Bit-shifting a float would corrupt this encoding — the bits don't represent a simple number like integers do. The same shift that doubles an integer would produce garbage from a float.
+
+**Solution: Multiply instead of shift**
+
+Multiplication achieves the same mathematical result, but works correctly with float's internal format:
+
+```cpp
+// Integer: bit shift works
+int32_t raw = input << 16;           // Direct bit manipulation
+
+// Float: must multiply (CPU handles IEEE 754 math internally)
+int32_t raw = (int32_t)(input * 65536.0f);  // Same result, different mechanism
+```
+
+Both scale the value by 2^16, just different approaches based on the data type.
+
+**Order matters:** Multiply first (while in float-land), then cast to int:
+
+```cpp
+// WRONG: cast first loses fractional part
+int32_t raw = ((int32_t)0.5f) << 16;  // 0.5 → 0 → 0 (wrong!)
+
+// CORRECT: multiply first, then cast
+int32_t raw = (int32_t)(0.5f * 65536.0f);  // 0.5 × 65536 = 32768 ✓
+```
+
+**Implementation (desktop only):**
+
+```cpp
+#ifdef PLATFORM_DESKTOP
+Fixed_q16(float input) : raw(static_cast<int32_t>(input * 65536.0f)) {}
+#endif
+```
+
+This keeps float code out of embedded builds where it would be slow (no FPU on Pico).
+
 ---
 
 ## Arithmetic Rules

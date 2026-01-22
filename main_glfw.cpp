@@ -11,6 +11,7 @@
 
 #include "framebuffer.h"
 #include "iso_math.h"
+#include "fixed_point.h"
 
 #include "assets/skeleton_alpha.h"
 #include "assets/wizard.h"
@@ -53,6 +54,16 @@ void fps_counter() {
 		frame_count = 0;
 		last_time = current_time;
 	}
+}
+double delta_time() {
+
+	static double last_time = -1;
+	if (last_time < 0.0) last_time = glfwGetTime();
+
+	double current_time = glfwGetTime();
+	double delta_time =  current_time - last_time;
+	last_time = current_time;
+	return delta_time;
 }
 
 struct NamedColor {
@@ -117,41 +128,48 @@ void rectangle_test() {
 	}
 }
 
-struct Rectangle {
-	uint16_t y;
-	uint16_t height;
-	uint16_t x;
-	uint16_t width;
-	uint16_t color;
+struct Entity {
+
+	Fixed_q16	y;
+	uint16_t	height;
+
+	Fixed_q16	x;
+	uint16_t	width;
+
+	uint16_t	color;
 };
 
-bool handle_movement(Rectangle& rect) {
+bool handle_movement(Entity& rect) {
+
+	Fixed_q16 speed = 100;
+	Fixed_q16 dt(static_cast<float>(delta_time()));
+	Fixed_q16 movement = speed * dt;
 
 	bool moved = false;
-	if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS && rect.y > 0) {
-		rect.y -= 1;
+	if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS && rect.y - movement >= 0) {
+		rect.y -= movement;
 		moved = true;
 	}
-	if (glfwGetKey(g_window, GLFW_KEY_A) == GLFW_PRESS && rect.x > 0) {
-		rect.x -= 1;
-				moved = true;
+	if (glfwGetKey(g_window, GLFW_KEY_A) == GLFW_PRESS && rect.x - movement >= 0) {
+		rect.x -= movement;
+		moved = true;
 	}
-	if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS && rect.y + rect.height < SCREEN_HEIGHT) {
-		rect.y += 1;
-				moved = true;
+	if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS && rect.y + rect.height + movement <= SCREEN_HEIGHT) {
+		rect.y += movement;
+		moved = true;
 	}
-	if (glfwGetKey(g_window, GLFW_KEY_D) == GLFW_PRESS && rect.x + rect.width < SCREEN_WIDTH) {
-		rect.x += 1;
-				moved = true;
+	if (glfwGetKey(g_window, GLFW_KEY_D) == GLFW_PRESS && rect.x + rect.width + movement <= SCREEN_WIDTH) {
+		rect.x += movement;
+		moved = true;
 	}
 	return moved;
 }
 
 void movement_tracking_test_regular() {
 
-	Rectangle rect = {128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0};
+	Entity rect = {128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0};
 	fill_with_color(0x0000);
-	draw_rectangle_memset(rect.y, rect.height, rect.x, rect.width, rect.color);
+	draw_rectangle_memset(rect.y.to_int(), rect.height, rect.x.to_int(), rect.width, rect.color);
 	swap_buffers();
 	present_frame();
 
@@ -160,7 +178,7 @@ void movement_tracking_test_regular() {
 
 		if (handle_movement(rect)) {
 			fill_with_color(0x0000);
-			draw_rectangle_memset(rect.y, rect.height, rect.x, rect.width, rect.color);
+			draw_rectangle_memset(rect.y.to_int(), rect.height, rect.x.to_int(), rect.width, rect.color);
 			fps_counter();
 			swap_buffers();
 			present_frame();
@@ -168,11 +186,11 @@ void movement_tracking_test_regular() {
 	}
 }
 void movement_tracking_test_polac() {
-
-	Rectangle rect = {128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0};
+	// this function performance could be greatly optimised by using frame_buffer insead of set_pixel. drawing rectangle and select random color.
+	Entity rect = {128/2 - 25/2, 25, 160/2 - 25/2, 25, 0xFFE0};
 	fill_with_color(0x0000);
 	for(int i = 0; i < 3536; i++) {
-		set_pixel(random_int_modulo(rect.x, rect.x + rect.width), random_int_modulo(rect.y, rect.y + rect.height), COLORS[random_int_modulo(5, 7)].value);
+		set_pixel(random_int_modulo(rect.x.to_int(), rect.x.to_int() + rect.width), random_int_modulo(rect.y.to_int(), rect.y.to_int() + rect.height), COLORS[random_int_modulo(5, 7)].value);
 	}
 	swap_buffers();
 	present_frame();
@@ -183,7 +201,7 @@ void movement_tracking_test_polac() {
 		if (handle_movement(rect)) {
 			fill_with_color(0x0000);
 			for(int i = 0; i < 3536; i++) {
-				set_pixel(random_int_modulo(rect.x, rect.x + rect.width), random_int_modulo(rect.y, rect.y + rect.height), COLORS[random_int_modulo(5, 7)].value);
+				set_pixel(random_int_modulo(rect.x.to_int(), rect.x.to_int() + rect.width), random_int_modulo(rect.y.to_int(), rect.y.to_int() + rect.height), COLORS[random_int_modulo(5, 7)].value);
 			}
 			fps_counter();
 			swap_buffers();
@@ -192,7 +210,7 @@ void movement_tracking_test_polac() {
 		else {
 			fill_with_color(0x0000);
 			for(int i = 0; i < 3536; i++) {
-				set_pixel(random_int_modulo(rect.x, rect.x + rect.width), random_int_modulo(rect.y, rect.y + rect.height), COLORS[random_int_modulo(5, 7)].value);
+				set_pixel(random_int_modulo(rect.x.to_int(), rect.x.to_int() + rect.width), random_int_modulo(rect.y.to_int(), rect.y.to_int() + rect.height), COLORS[random_int_modulo(5, 7)].value);
 			}
 			fps_counter();
 			swap_buffers();
@@ -222,18 +240,18 @@ void sprite_test() {
 
 void movement_tracking_test_sprite_skeleton() {
 
-	Rectangle sprite_coord = {128/2 - skeleton_alpha_height/2, skeleton_alpha_height, 160/2 - skeleton_alpha_width/2, skeleton_alpha_width};
+	Entity sprite_coord = {128/2 - skeleton_alpha_height/2, skeleton_alpha_height, 160/2 - skeleton_alpha_width/2, skeleton_alpha_width};
 	fill_with_color(COLORS[3].value);
-	draw_sprite_alpha(128/2 - skeleton_alpha_height/2, skeleton_alpha_height, 160/2 - skeleton_alpha_width/2, skeleton_alpha_width, skeleton_alpha_data);
+	draw_sprite_alpha(sprite_coord.y.to_int(), sprite_coord.height, sprite_coord.x.to_int(), sprite_coord.width, skeleton_alpha_data);
 	swap_buffers();
 	present_frame();
 
 	while (!glfwWindowShouldClose(g_window)) {
-		glfwPollEvents();
 
+		glfwPollEvents();
 		if (handle_movement(sprite_coord)) {
 			fill_with_color(COLORS[3].value);
-			draw_sprite_alpha(sprite_coord.y, sprite_coord.height, sprite_coord.x, sprite_coord.width, skeleton_alpha_data);
+			draw_sprite_alpha(sprite_coord.y.to_int(), sprite_coord.height, sprite_coord.x.to_int(), sprite_coord.width, skeleton_alpha_data);
 			fps_counter();
 			swap_buffers();
 			present_frame();
@@ -242,28 +260,26 @@ void movement_tracking_test_sprite_skeleton() {
 }
 void movement_tracking_test_sprite_wizard() {
 
-	Rectangle wizard = {128/2 - wizard_height/2, wizard_height, 160/2 - wizard_width/2, wizard_width};
-	Rectangle wizard2 = {2, wizard2_height, 2, wizard2_width};
+	Entity wizard = {2, wizard_height, 2, wizard_width};
+	Entity wizard2 = {128/2 - wizard2_height/2, wizard2_height, 160/2 - wizard2_width/2, wizard2_width};
 
 	fill_with_color(COLORS[4].value);
-
-	draw_sprite_alpha(128/2 - wizard_height/2, wizard_height, 160/2 - wizard_width/2, wizard_width, wizard_data);
-	draw_sprite_alpha(2, wizard2_height, 2, wizard2_width, wizard2_data);
+	draw_sprite_alpha(wizard.y.to_int(), wizard.height, wizard.x.to_int(), wizard.width, wizard_data);
+	draw_sprite_alpha(wizard2.y.to_int(), wizard2.height, wizard2.x.to_int(), wizard2.width, wizard2_data);
 
 	swap_buffers();
 	present_frame();
 
 	while (!glfwWindowShouldClose(g_window)) {
-		glfwPollEvents();
 
+		glfwPollEvents();
 		fill_with_color(COLORS[4].value);
-		draw_sprite_alpha(wizard2.y, wizard2.height, wizard2.x, wizard2.width, wizard2_data);
-		handle_movement(wizard);
-		draw_sprite_alpha(wizard.y, wizard.height, wizard.x, wizard.width, wizard_data);
+		draw_sprite_alpha(wizard.y.to_int(), wizard.height, wizard.x.to_int(), wizard.width, wizard_data);
+		handle_movement(wizard2);
+		draw_sprite_alpha(wizard2.y.to_int(), wizard2.height, wizard2.x.to_int(), wizard2.width, wizard2_data);
 		fps_counter();
 		swap_buffers();
 		present_frame();
-
 	}
 }
 
@@ -301,12 +317,10 @@ void world_to_screen_test() {
 void error_callback(int error, const char* description) {
 	fprintf(stderr, "Error %s\n", description);
 }
-
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
-
 
 void present_frame() {
 	glBindTexture(GL_TEXTURE_2D, g_texture);

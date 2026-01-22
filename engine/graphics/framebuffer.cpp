@@ -75,12 +75,12 @@ void Framebuffer::draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t col
 void Framebuffer::draw_rectangle(uint16_t y, uint16_t height, uint16_t x, uint16_t width, uint16_t color) {
 
 
-	if(y > SCREEN_HEIGHT) {
-		printf("[ERROR] starting raw out of bound");
+	if(y > DISPLAY_HEIGHT) {
+		printf("[ERROR] starting raw out of bound\n");
 		return;
 	}
-	if(height > SCREEN_HEIGHT - y) {
-		printf("[ERROR] number of raws out of bound");
+	if(height > DISPLAY_WIDTH - y) {
+		printf("[ERROR] number of raws out of bound\n");
 		return;
 	}
 
@@ -91,12 +91,12 @@ void Framebuffer::draw_rectangle(uint16_t y, uint16_t height, uint16_t x, uint16
 }
 void Framebuffer::draw_rectangle_memset(uint16_t y, uint16_t height, uint16_t x, uint16_t width, uint16_t color) {
 
-	if(y > SCREEN_HEIGHT) {
-		printf("[ERROR] starting raw out of bound");
+	if(y > DISPLAY_HEIGHT) {
+		printf("[ERROR] starting raw out of bound\n");
 		return;
 	}
-	if(height > SCREEN_HEIGHT - y) {
-		printf("[ERROR] number of raws out of bound");
+	if(height > DISPLAY_WIDTH - y) {
+		printf("[ERROR] number of raws out of bound\n");
 		return;
 	}
 
@@ -116,12 +116,12 @@ void Framebuffer::draw_rectangle_memset(uint16_t y, uint16_t height, uint16_t x,
 
 void Framebuffer::draw_sprite(uint16_t y, uint16_t height, uint16_t x, uint16_t width, const uint16_t* sprite) {
 
-	if(y > SCREEN_HEIGHT) {
-		printf("[ERROR] starting raw out of bound");
+	if(y > DISPLAY_HEIGHT) {
+		printf("[ERROR] starting raw out of bound\n");
 		return;
 	}
-	if(height > SCREEN_HEIGHT - y) {
-		printf("[ERROR] number of raws out of bound");
+	if(height > DISPLAY_WIDTH - y) {
+		printf("[ERROR] number of raws out of bound\n");
 		return;
 	}
 
@@ -140,12 +140,12 @@ void Framebuffer::draw_sprite(uint16_t y, uint16_t height, uint16_t x, uint16_t 
 }
 void Framebuffer::draw_sprite_alpha(uint16_t y, uint16_t height, uint16_t x, uint16_t width, const SpritePixel* sprite) {
 
-	if(y > SCREEN_HEIGHT) {
-		printf("[ERROR] starting raw out of bound");
+	if(y > DISPLAY_HEIGHT) {
+		printf("[ERROR] starting raw out of bound\n");
 		return;
 	}
-	if(height > SCREEN_HEIGHT - y) {
-		printf("[ERROR] number of raws out of bound");
+	if(height > DISPLAY_WIDTH - y) {
+		printf("[ERROR] number of raws out of bound\n");
 		return;
 	}
 

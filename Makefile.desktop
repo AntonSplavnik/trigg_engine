@@ -29,7 +29,7 @@ OBJS = $(OBJ_DIR)/main_glfw.o \
        $(OBJ_DIR)/glad.o
 
 # Output binary
-TARGET = $(BIN_DIR)/trigg_engine
+TARGET = $(BIN_DIR)/pocket_gate
 
 # Default target
 all: dirs $(TARGET)
