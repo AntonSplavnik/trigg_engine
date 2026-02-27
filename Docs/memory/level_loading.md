@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-**TriggEngine uses a cartridge-like system:**
+**PocketGateEngine uses a cartridge-like system:**
 - **Engine** → Stored in Flash (compiled into firmware)
 - **Games** → Stored on SD card (swappable, no recompilation)
 - **Level data** → Loaded from SD to RAM at level transitions

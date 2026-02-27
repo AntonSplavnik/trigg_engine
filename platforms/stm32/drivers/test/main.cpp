@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @brief TriggEngine STM32H743 Entry Point
+ * @brief PocketGateEngine STM32H743 Entry Point
  *
  * Initial hardware test for WeAct STM32H743VIT6 + 4" ST7796S Display
  */
@@ -56,7 +56,7 @@ int main(void)
     LCD_Reset();
 
     // Test communication
-    printf("TriggEngine STM32H743 Booting...\n");
+    printf("PocketGateEngine STM32H743 Booting...\n");
     printf("System Clock: %lu MHz\n", SystemCoreClock / 1000000);
 
     if (LCD_Test_Communication()) {

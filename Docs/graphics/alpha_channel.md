@@ -31,7 +31,7 @@ Alpha: 0-255  (0 = fully transparent, 255 = fully opaque)
 | 192   | 75%     | Mostly opaque                   |
 | 255   | 100%    | Fully visible (no transparency) |
 
-## Use Cases in TriggEngine
+## Use Cases in PocketGateEngine
 
 ### 1. Sprite Transparency
 **Without alpha** (binary transparency):
@@ -115,7 +115,7 @@ Blue channel:  (0 × 0.5)   + (255 × 0.5) = 127
 Result: Purple (127, 0, 127)
 ```
 
-## Implementation in TriggEngine
+## Implementation in PocketGateEngine
 
 ### Memory Constraint Challenge
 **Problem**: Full RGBA requires 4 bytes per pixel

@@ -405,7 +405,7 @@ Recommendation: 999 steps at 1 kHz
 
 ## Common Applications
 
-### 1. LED Brightness (TriggEngine Use Case)
+### 1. LED Brightness (PocketGateEngine Use Case)
 
 **Application:** Display backlight dimming
 

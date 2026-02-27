@@ -57,11 +57,11 @@ picotool load -t elf myprogram.elf       # Flash ELF file directly
 - `-f` - Force operation (reboot device if needed)
 - `-t <type>` - Specify file type (elf, bin, uf2)
 
-**Common workflow for TriggEngine:**
+**Common workflow for PocketGateEngine:**
 ```bash
 cd build
 make
-picotool load -x -f TriggEngine.uf2
+picotool load -x -f PocketGateEngine.uf2
 ```
 
 ---
@@ -224,10 +224,10 @@ picotool encrypt input.elf -o encrypted.uf2 --key aes_key.bin --iv salt.bin
 
 ```bash
 # One-command build and flash
-cd build && make && picotool load -x -f TriggEngine.uf2
+cd build && make && picotool load -x -f PocketGateEngine.uf2
 
 # Or create an alias in ~/.zshrc:
-alias flash='cd build && make && picotool load -x -f TriggEngine.uf2 && cd ..'
+alias flash='cd build && make && picotool load -x -f PocketGateEngine.uf2 && cd ..'
 ```
 
 ### Debug Flash Issues
@@ -237,10 +237,10 @@ alias flash='cd build && make && picotool load -x -f TriggEngine.uf2 && cd ..'
 picotool info -a
 
 # Verify flash succeeded
-picotool verify TriggEngine.uf2
+picotool verify PocketGateEngine.uf2
 
 # If verification fails, try reflashing
-picotool load -x -f TriggEngine.uf2
+picotool load -x -f PocketGateEngine.uf2
 ```
 
 ### Safe Experimentation
@@ -346,7 +346,7 @@ picotool reboot -u -f
 
 ---
 
-## TriggEngine Integration
+## PocketGateEngine Integration
 
 ### CMakeLists.txt Configuration
 
@@ -368,7 +368,7 @@ cmake ..
 make -j4
 if [ $? -eq 0 ]; then
     echo "Build successful, flashing..."
-    picotool load -x -f TriggEngine.uf2
+    picotool load -x -f PocketGateEngine.uf2
 else
     echo "Build failed!"
     exit 1

@@ -1,4 +1,4 @@
-# TriggEngine - STM32H743 Build
+# PocketGateEngine - STM32H743 Build
 
 PlatformIO project for WeAct STM32H743VIT6 with 4" ST7796S display.
 

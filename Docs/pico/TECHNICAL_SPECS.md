@@ -1,4 +1,4 @@
-# TriggEngine - Technical Specifications
+# PocketGateEngine - Technical Specifications
 
 Complete reference for all hardware specs, memory calculations, timing budgets, and unit conversions.
 
@@ -6,7 +6,7 @@ Complete reference for all hardware specs, memory calculations, timing budgets, 
 
 ## Architecture Overview
 
-**TriggEngine uses a cartridge-style architecture:**
+**PocketGateEngine uses a cartridge-style architecture:**
 
 ```
 Flash (2 MB)           SD Card (1 GB+)         RAM (264 KB)

@@ -1,6 +1,6 @@
-# TriggEngine Concepts
+# PocketGateEngine Concepts
 
-This document serves as an index to all hardware and software concepts for the TriggEngine project.
+This document serves as an index to all hardware and software concepts for the PocketGateEngine project.
 
 ---
 

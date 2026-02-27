@@ -1,6 +1,6 @@
 # Isometric Rendering: Core Concepts
 
-**Target**: TriggEngine on Raspberry Pi Pico (C++11, 128x160 ST7735 display)
+**Target**: PocketGateEngine on Raspberry Pi Pico (C++11, 128x160 ST7735 display)
 
 ---
 

@@ -1,6 +1,6 @@
-# TriggEngine Asset Tools
+# PocketGateEngine Asset Tools
 
-This directory contains tools for converting and inspecting game assets for the TriggEngine.
+This directory contains tools for converting and inspecting game assets for the PocketGateEngine.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ This directory contains tools for converting and inspecting game assets for the 
 
 ## Binary Sprite Format
 
-TriggEngine uses a simple binary format for sprites (`.sprite` files):
+PocketGateEngine uses a simple binary format for sprites (`.sprite` files):
 
 ```
 ┌─────────────────────────────────────┐
@@ -69,7 +69,7 @@ File size = 4 bytes (header) + width × height × 2 bytes
 
 **File:** `png_to_sprite_verbose.cpp`
 
-Converts PNG images to binary `.sprite` format for TriggEngine.
+Converts PNG images to binary `.sprite` format for PocketGateEngine.
 
 ### Features
 
@@ -380,7 +380,7 @@ ls -lh *.sprite
 # Check dimensions
 ./inspect_sprite large_sprite.sprite
 
-# TriggEngine display is 128×160 pixels
+# PocketGateEngine display is 128×160 pixels
 # Sprites should typically be 16×16, 32×32, or 64×64
 
 # Resize in image editor if needed
@@ -433,7 +433,7 @@ if (alpha < 128) {
 **Reasoning:**
 - Values 0-127 = transparent (50% transparency or more)
 - Values 128-255 = opaque (less than 50% transparency)
-- Simple binary decision (TriggEngine doesn't support partial transparency)
+- Simple binary decision (PocketGateEngine doesn't support partial transparency)
 - 128 is the midpoint of 0-255 range
 
 ### Endianness
@@ -516,7 +516,7 @@ cl /std:c++11 /EHsc inspect_sprite.cpp
 
 ## License
 
-These tools are part of TriggEngine and follow the same license as the main project.
+These tools are part of PocketGateEngine and follow the same license as the main project.
 
 ---
 

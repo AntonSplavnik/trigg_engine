@@ -366,7 +366,7 @@ Buffer: [====HALF A====][====HALF B====]
 
 ---
 
-## TriggEngine DMA Usage
+## PocketGateEngine DMA Usage
 
 ### Display Transfer
 

@@ -112,7 +112,7 @@ screen /dev/tty.usbmodem* 115200  # Now connect
    int main(){
        stdio_init_all();
        sleep_ms(3000);  // 3 second delay
-       printf("TriggEngine v0.1\n");
+       printf("PocketGateEngine v0.1\n");
        // rest of code...
    }
    ```

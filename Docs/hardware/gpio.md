@@ -250,7 +250,7 @@ Each pin can be assigned to different peripherals:
 
 ---
 
-## TriggEngine GPIO Usage
+## PocketGateEngine GPIO Usage
 
 ### Display Control Pins (Regular GPIO)
 
@@ -295,7 +295,7 @@ gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
 
 ## Chip Select Pattern
 
-A common GPIO pattern in TriggEngine is **Chip Select (CS)**:
+A common GPIO pattern in PocketGateEngine is **Chip Select (CS)**:
 
 ### Why Chip Select Exists
 
@@ -352,7 +352,7 @@ When designing your circuit:
 2. Use any remaining pins for buttons and LEDs
 3. Check Pico pinout diagram - some pins have multiple functions
 
-**TriggEngine pin allocation:**
+**PocketGateEngine pin allocation:**
 - **SPI (3 pins):** GP2, GP3, GP19
 - **Display control (5 pins):** GP18, GP20, GP22, GP26
 - **SD card control (1 pin):** GP21
@@ -444,4 +444,4 @@ for (int i = 0; i < 1000; i++) {
 
 See `Docs/PICO_REFERENCE.md` for complete GPIO function list and examples.
 
-See `drivers/display.cpp` for real-world GPIO usage in TriggEngine.
+See `drivers/display.cpp` for real-world GPIO usage in PocketGateEngine.

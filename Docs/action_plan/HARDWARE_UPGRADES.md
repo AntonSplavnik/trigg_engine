@@ -1,7 +1,7 @@
 # Hardware Upgrade Plan
 
 ## Overview
-This document outlines potential hardware upgrades for the TriggEngine console to improve performance, usability, and user experience.
+This document outlines potential hardware upgrades for the PocketGateEngine console to improve performance, usability, and user experience.
 
 ---
 

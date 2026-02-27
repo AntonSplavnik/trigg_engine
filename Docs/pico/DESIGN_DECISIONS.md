@@ -1,6 +1,6 @@
-# TriggEngine Design Decisions
+# PocketGateEngine Design Decisions
 
-This document records major architectural and design decisions made during the development of TriggEngine. Each decision includes the context, alternatives considered, trade-offs, and rationale.
+This document records major architectural and design decisions made during the development of PocketGateEngine. Each decision includes the context, alternatives considered, trade-offs, and rationale.
 
 **Format:**
 - **Decision**: What was decided

@@ -315,4 +315,4 @@ PE11 - GPIO_Output - LCD_CS     - High (deselected)
 ---
 
 **Last Updated**: 2026-01-30
-**Author**: TriggEngine Project
+**Author**: PocketGateEngine Project

@@ -20,7 +20,7 @@ Value:    0x34      0x12
           ^^ low    ^^ high
 ```
 
-## Why It Matters in TriggEngine
+## Why It Matters in PocketGateEngine
 
 ### 1. RGB565 Format
 When sending 16-bit RGB565 colors to the ST7735 display:

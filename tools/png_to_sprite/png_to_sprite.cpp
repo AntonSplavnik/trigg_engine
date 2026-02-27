@@ -78,7 +78,7 @@
 
   int main(int argc, char** argv) {
       if (argc < 2) {
-          std::cout << "PNG to Binary Sprite Converter for TriggEngine\n";
+          std::cout << "PNG to Binary Sprite Converter for PocketGateEngine\n";
           std::cout << "Usage:\n";
           std::cout << "  " << argv[0] << " <input.png> [output.sprite]\n";
           std::cout << "  " << argv[0] << " <directory>  (batch convert)\n";

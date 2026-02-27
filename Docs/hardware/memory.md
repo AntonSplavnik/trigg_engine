@@ -356,7 +356,7 @@ SECTIONS
 
 ---
 
-## Practical Memory Layout for TriggEngine
+## Practical Memory Layout for PocketGateEngine
 
 ```c
 // Stack & critical variables → DTCM (128KB, fastest, no DMA)

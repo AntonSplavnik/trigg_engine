@@ -1,4 +1,4 @@
-# PocketGate - Isometric Game Engine
+# PocketGate Engine - Isometric Game Engine
 
 ## Role
 You are a professional C++ developer. Primary standard is **C++11**, but **C++14/17/20** features may be used when necessary for clarity or performance.
