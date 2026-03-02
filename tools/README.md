@@ -83,7 +83,7 @@ Converts PNG images to binary `.sprite` format for TriggEngine.
 
 ```bash
 # Requires stb_image.h in the same directory
-g++ -std=c++11 png_to_sprite_verbose.cpp -o png_to_sprite_verbose
+g++ -std=c++20 png_to_sprite_verbose.cpp -o png_to_sprite_verbose
 ```
 
 ### Usage
@@ -174,7 +174,7 @@ Analyzes and validates `.sprite` binary files.
 ### Build
 
 ```bash
-g++ -std=c++11 inspect_sprite.cpp -o inspect_sprite
+g++ -std=c++20 inspect_sprite.cpp -o inspect_sprite
 ```
 
 ### Usage
@@ -400,7 +400,7 @@ curl -L https://raw.githubusercontent.com/nothings/stb/master/stb_image.h -o stb
 
 # Or copy it manually to tools/
 # Then rebuild
-g++ -std=c++11 png_to_sprite_verbose.cpp -o png_to_sprite_verbose
+g++ -std=c++20 png_to_sprite_verbose.cpp -o png_to_sprite_verbose
 ```
 
 ---
@@ -496,14 +496,14 @@ Pixel[W×H-1] = bottom-right
 
 ### macOS / Linux
 ```bash
-g++ -std=c++11 png_to_sprite_verbose.cpp -o png_to_sprite_verbose
-g++ -std=c++11 inspect_sprite.cpp -o inspect_sprite
+g++ -std=c++20 png_to_sprite_verbose.cpp -o png_to_sprite_verbose
+g++ -std=c++20 inspect_sprite.cpp -o inspect_sprite
 ```
 
 ### Windows (MinGW)
 ```bash
-g++ -std=c++11 png_to_sprite_verbose.cpp -o png_to_sprite_verbose.exe
-g++ -std=c++11 inspect_sprite.cpp -o inspect_sprite.exe
+g++ -std=c++20 png_to_sprite_verbose.cpp -o png_to_sprite_verbose.exe
+g++ -std=c++20 inspect_sprite.cpp -o inspect_sprite.exe
 ```
 
 ### Windows (Visual Studio)

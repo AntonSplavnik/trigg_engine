@@ -2,7 +2,7 @@
 
 # Compiler
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -O2 -DPLATFORM_DESKTOP
+CXXFLAGS = -std=c++20 -Wall -O2 -DPLATFORM_DESKTOP
 
 # Directories
 SRC_DIR = .
@@ -10,10 +10,9 @@ OBJ_DIR = build_desktop/obj
 BIN_DIR = build_desktop
 
 # Include paths
-INCLUDES = -I. -Iengine/graphics -Iengine/isometric -Iengine/math -Iplatforms/desktop -Iplatforms/desktop/glad/include -I/opt/homebrew/include
+INCLUDES = -I. -Iengine/graphics -Iengine/entity -Iengine/isometric -Iengine/math -Iplatforms/desktop -Iplatforms/desktop/glad/include -I/opt/homebrew/include
 
 # Libraries (macOS)
-# Install GLFW with: brew install glfw
 LIBS = -L/opt/homebrew/lib -lglfw -framework OpenGL -framework Cocoa -framework IOKit
 
 # Source files (only desktop-compatible ones)
@@ -32,7 +31,20 @@ OBJS = $(OBJ_DIR)/main_glfw.o \
 TARGET = $(BIN_DIR)/pocket_gate
 
 # Default target
-all: dirs $(TARGET)
+all: check-glfw dirs $(TARGET)
+
+# Check if GLFW is installed, install via Homebrew if not
+check-glfw:
+	@if ! pkg-config --exists glfw3 2>/dev/null && [ ! -f /opt/homebrew/lib/libglfw.dylib ] && [ ! -f /usr/local/lib/libglfw.dylib ]; then \
+		echo "GLFW not found. Installing via Homebrew..."; \
+		if ! command -v brew >/dev/null 2>&1; then \
+			echo "Homebrew not found. Installing Homebrew first..."; \
+			/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
+		fi; \
+		brew install glfw; \
+	else \
+		echo "GLFW already installed. Skipping."; \
+	fi
 
 # Create directories
 dirs:
@@ -64,4 +76,4 @@ clean:
 run: all
 	./$(TARGET)
 
-.PHONY: all dirs clean run
+.PHONY: all dirs clean run check-glfw

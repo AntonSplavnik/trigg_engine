@@ -4,6 +4,10 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <thread>
+#include <chrono>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -12,12 +16,17 @@
 #include "framebuffer.h"
 #include "iso_math.h"
 #include "fixed_point.h"
+#include "entity.hpp"
 
 #include "assets/skeleton_alpha.h"
 #include "assets/wizard.h"
 #include "assets/wizard2.h"
 
+#define RECT_WIDTH 2
+#define RECT_HEIGHT 2
+
 using namespace Framebuffer;
+using namespace std::chrono_literals;
 
 GLFWwindow* g_window = nullptr;
 GLuint g_texture = 0;
@@ -376,9 +385,82 @@ int gl_init() {
 	return 0;
 }
 
-int main(){
+struct Position {
+	Position(int x, int y) : x(x), y(y) {}
 
+	int x = 0;
+	int y = 0;
+};
+
+class Player : public IEntity {
+public:
+	Player() : IEntity() {}
+	Player(std::string_view name, int xp) : IEntity(), name(name), xp(xp) {}
+private:
+	const std::string name;
+	int xp;
+};
+
+class MoveSystem {
+public:
+	void start(Registry *registry) {
+		try {
+			auto &data = registry->get<Position>();
+
+			while (1) {
+				fill_with_color(0x0000);
+
+				for (auto &d : data) {
+					d.x = random_int_modulo(0, SCREEN_WIDTH - RECT_WIDTH);
+					d.y = random_int_modulo(0, SCREEN_HEIGHT - RECT_HEIGHT);
+					draw_rectangle_memset(d.y, RECT_WIDTH, d.x, RECT_HEIGHT, 0xFFE0);
+				}
+
+				fps_counter();
+				swap_buffers();
+				if (!glfwWindowShouldClose(g_window))
+					present_frame();
+
+				// std::this_thread::sleep_for(300ms);
+			}
+		} catch (std::runtime_error &e) {
+			std::cout << e.what() << std::endl;
+		}
+	}
+};
+
+int main() {
 	if (gl_init() == -1) return -1;
+
+	// 1. create registry
+	auto registry = std::make_unique<Registry>();
+	
+	// 2. add entities
+	std::vector<std::weak_ptr<Player>> players;
+	for (int i = 0; i < 100000; ++i)
+		players.push_back(registry->createEntity<Player>("Bob", i));
+
+	// 3. add components
+	for (auto const &player : players) {
+		if (auto p = player.lock())
+			registry->emplace<Position>(p.get(), 2, 4);
+	}
+
+	// 4. delete components
+	for (int i = 0; i < 50000; ++i) {
+		if (auto p = players[i].lock())
+			registry->remove<Position>(p.get());
+	}
+
+	// 5. delete entities
+	for (int i = 0; i < 50000; ++i) {
+		if (auto p = players[i].lock())
+			registry->destroyEntity(p.get());
+	}
+
+	// 6. start system
+	auto moveSystem = std::make_unique<MoveSystem>();
+	moveSystem->start(registry.get());
 
 	// color_test();
 	// random_pixels_test();
